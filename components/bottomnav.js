@@ -1,109 +1,156 @@
 // components/bottomnav.js
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useProfile } from "../hooks/useProfile";
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useProfile } from '../hooks/useProfile';
 
 export default function BottomNav() {
   const router = useRouter();
   const { profile, isAdmin } = useProfile() || {};
 
-  const currentPath = router.asPath || router.pathname || "/";
+  const currentPath = router.asPath || router.pathname || '/';
 
   const avatarInitial =
     (profile?.first_name && profile.first_name.trim()[0]) ||
     (profile?.username && profile.username.trim()[0]) ||
     (profile?.email && profile.email.trim()[0]) ||
-    "I";
+    'A';
 
-  const items = [
-    { href: "/dashboard", key: "home" },
-    { href: "/courses", key: "courses" },
-    { href: "/noticeboard", key: "pin" },
-    { href: "/profile", key: "profile" },
+  const avatarUrl = profile?.avatar_url || null;
+
+  const baseItems = [
+    { href: '/dashboard', label: 'Home' },
+    { href: '/courses', label: 'Courses' },
+    { href: '/noticeboard', label: 'Noticeboard' },
+    { href: '/profile', label: 'Profile' },
   ];
 
-  if (isAdmin) {
-    items.splice(3, 0, { href: "/admin", key: "admin" });
-  }
+  const items = isAdmin
+    ? [
+        baseItems[0],
+        baseItems[1],
+        baseItems[2],
+        { href: '/admin', label: 'Admin' },
+        baseItems[3],
+      ]
+    : baseItems;
 
   const isActive = (path) => {
-    if (path === "/dashboard") {
-      return currentPath === "/" || currentPath === "/dashboard";
+    if (path === '/dashboard') {
+      return currentPath === '/' || currentPath === '/dashboard';
     }
-    return currentPath === path || currentPath.startsWith(path + "/");
+    return currentPath === path || currentPath.startsWith(path + '/');
   };
 
-  const stroke = 1.8;
-  const size = 22;
+  // --- ICONS ------------------------------------------------------
+  const renderIcon = (href) => {
+    const commonProps = {
+      viewBox: '0 0 24 24',
+      className: 'ia-nav-icon-svg',
+      'aria-hidden': 'true',
+    };
 
-  const icons = {
-    home: (
-      <svg viewBox="0 0 24 24" width={size} height={size}>
-        <path
-          d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5a.5.5 0 0 1-.5-.5v-5h-4v5a.5.5 0 0 1-.5.5H5a1 1 0 0 1-1-1v-9.5Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-
-    courses: (
-      <svg viewBox="0 0 24 24" width={size} height={size}>
-        <rect
-          x="3.6"
-          y="3.6"
-          width="16.8"
-          height="16.8"
-          rx="4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={stroke}
-        />
-        <path
-          d="M10 15.5V8.5a.8.8 0 0 1 1.2-.6l4.4 3.4a.8.8 0 0 1 0 1.2l-4.4 3.4a.8.8 0 0 1-1.2-.4Z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
-
-    pin: (
-      <svg viewBox="0 0 24 24" width={size} height={size}>
-        <g transform="scale(0.9) translate(1.3 1.3)">
+    // Home
+    if (href.startsWith('/dashboard')) {
+      return (
+        <svg {...commonProps}>
           <path
-            d="M12 3.5c-2.3 0-4.3 1.9-4.3 4.3 0 3.1 3.3 6.9 4 7.7.2.2.5.2.7 0 .7-.8 4.1-4.6 4.1-7.7 0-2.4-2-4.3-4.5-4.3Zm0 6a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5Z"
+            d="M5 10.5 12 4l7 6.5V19a1.2 1.2 0 0 1-1.2 1.2h-3.8a.7.7 0 0 1-.7-.7v-4.3H10v4.3a.7.7 0 0 1-.7.7H5.5A1.2 1.2 0 0 1 4.3 19v-8.5Z"
             fill="none"
             stroke="currentColor"
-            strokeWidth={stroke}
+            strokeWidth="1.7"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </g>
-      </svg>
-    ),
+        </svg>
+      );
+    }
 
-    admin: (
-      <svg viewBox="0 0 24 24" width={size} height={size}>
-        <circle
-          cx="12"
-          cy="12"
-          r="3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={stroke}
-        />
-        <path
-          d="M4.8 12a7.1 7.1 0 0 1 .1-1l-1.7-1.3 1.7-3 2 .6a7 7 0 0 1 1.6-1l.3-2h3.4l.3 2a7 7 0 0 1 1.6 1l2-.6 1.7 3-1.7 1.3a7.1 7.1 0 0 1 0 2l1.7 1.3-1.7 3-2-.6a7 7 0 0 1-1.6 1l-.3 2H9.3l-.3-2a7 7 0 0 1-1.6-1l-2 .6-1.7-3 1.7-1.3Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    // Courses (playbook / video card)
+    if (href.startsWith('/courses')) {
+      return (
+        <svg {...commonProps}>
+          <rect
+            x="4"
+            y="4"
+            width="16"
+            height="16"
+            rx="4.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+          />
+          <path
+            d="M10.4 15.2V8.8a.7.7 0 0 1 1.1-.6l3.6 2.8a.8.8 0 0 1 0 1.3l-3.6 2.8a.7.7 0 0 1-1.1-.6Z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    }
+
+    // Noticeboard (board + pin style)
+if (href.startsWith('/noticeboard')) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="ia-nav-icon-svg"
+      aria-hidden="true"
+    >
+      {/* board / card */}
+      <path
+        d="M8 7h6a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* pin circle */}
+      <circle
+        cx="9"
+        cy="7"
+        r="2.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      {/* connector arm */}
+      <path
+        d="M10.5 8.5 13 11"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+    // Admin (cog)
+    if (href.startsWith('/admin')) {
+      return (
+        <svg {...commonProps}>
+          <circle
+            cx="12"
+            cy="12"
+            r="3.1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path
+            d="M5.1 12.7a7.2 7.2 0 0 1 0-1.4L3.7 10l1.3-2.3 1.8.4a7 7 0 0 1 1.2-.7l.3-1.8h2.6l.3 1.8 1.2.7 1.8-.4L20.3 10l-1.4 1.3a7.2 7.2 0 0 1 0 1.4l1.4 1.3-1.3 2.3-1.8-.4a7 7 0 0 1-1.2.7l-.3 1.8H9.3l-.3-1.8-1.2-.7-1.8.4L3.7 14l1.4-1.3Z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    }
+
+    // Fallback dot
+    return <span className="ia-nav-icon-svg">•</span>;
   };
 
   return (
@@ -111,23 +158,62 @@ export default function BottomNav() {
       <div className="ia-nav-inner">
         {items.map((item) => {
           const active = isActive(item.href);
-          const isProfile = item.href.startsWith("/profile");
+          const isProfile = item.href.startsWith('/profile');
 
-          const pillClass = active
-            ? "ia-nav-pill ia-nav-pill--active"
-            : "ia-nav-pill";
+          const linkClass = active
+            ? 'ia-nav-link ia-nav-link--active'
+            : 'ia-nav-link';
 
           return (
-            <Link key={item.href} href={item.href} className="ia-nav-link">
-              <span className={pillClass}>
-                {isProfile ? (
-                  <span className="ia-nav-avatar">
-                    {avatarInitial}
+            <Link key={item.href} href={item.href} className={linkClass}>
+              {/* ACTIVE: pill with icon + label */}
+              {active ? (
+                <span className="ia-nav-pill ia-nav-pill--active">
+                  <span className="ia-nav-icon-wrap">
+                    {isProfile ? (
+                      <span className="ia-nav-avatar-wrap ia-nav-avatar-wrap--pill">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt="Profile"
+                            className="ia-nav-avatar"
+                          />
+                        ) : (
+                          <span className="ia-nav-avatar ia-nav-avatar-initial">
+                            {avatarInitial}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      renderIcon(item.href)
+                    )}
                   </span>
-                ) : (
-                  icons[item.key]
-                )}
-              </span>
+                  <span className="ia-nav-label">{item.label}</span>
+                </span>
+              ) : (
+                // INACTIVE: only circular icon
+                <span className="ia-nav-pill">
+                  <span className="ia-nav-icon-wrap ia-nav-icon-wrap--only">
+                    {isProfile ? (
+                      <span className="ia-nav-avatar-wrap">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt="Profile"
+                            className="ia-nav-avatar"
+                          />
+                        ) : (
+                          <span className="ia-nav-avatar ia-nav-avatar-initial">
+                            {avatarInitial}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      renderIcon(item.href)
+                    )}
+                  </span>
+                </span>
+              )}
             </Link>
           );
         })}
@@ -140,63 +226,142 @@ export default function BottomNav() {
           right: 0;
           bottom: 0;
           height: 70px;
-          background: radial-gradient(circle at top, #050815, #02030a 70%);
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
           z-index: 999;
+          background: radial-gradient(circle at top, #050815, #02030a 70%);
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          padding-bottom: env(safe-area-inset-bottom);
         }
 
         .ia-nav-inner {
-          display: flex;
-          justify-content: space-around;
-          align-items: center;
-          height: 100%;
           max-width: 900px;
           margin: 0 auto;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-around;
+          padding: 0 18px;
+          gap: 12px;
         }
 
         .ia-nav-link {
           flex: 1;
           display: flex;
           justify-content: center;
+          text-decoration: none;
+          color: rgba(255, 255, 255, 0.72);
         }
 
+        .ia-nav-link--active {
+          color: #ffffff;
+        }
+
+        /* Base “slot” */
         .ia-nav-pill {
-          width: 42px;
-          height: 42px;
-          border-radius: 14px;
+          min-width: 44px;
+          max-width: 110px;
+          height: 44px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          transition: background 0.16s ease-out, box-shadow 0.16s ease-out,
+            border-color 0.16s ease-out, transform 0.08s ease-out;
+        }
+
+        /* ACTIVE pill – icon + label like your inspiration */
+        .ia-nav-pill--active {
+          padding: 0 16px 0 10px;
+          justify-content: flex-start;
+          gap: 8px;
+          background: radial-gradient(
+              circle at top left,
+              rgba(255, 255, 255, 0.18),
+              transparent 60%
+            ),
+            rgba(5, 10, 64, 0.96);
+          border: 1px solid rgba(245, 219, 160, 0.9);
+          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.9);
+        }
+
+        .ia-nav-label {
+          font-size: 13px;
+          font-weight: 500;
+          white-space: nowrap;
+        }
+
+        .ia-nav-icon-wrap {
+          width: 24px;
+          height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: 0.2s;
         }
 
-        .ia-nav-pill--active {
-          background: linear-gradient(
-            140deg,
-            rgba(40, 55, 110, 0.7),
-            rgba(10, 12, 30, 0.9)
-          );
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95);
-          backdrop-filter: blur(16px);
+        /* inactive icon circle */
+        .ia-nav-icon-wrap--only {
+          border-radius: 999px;
+          background: rgba(15, 23, 42, 0.8);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.85);
         }
 
-        .ia-nav-pill:not(.ia-nav-pill--active):hover {
-          background: rgba(255, 255, 255, 0.06);
+        .ia-nav-link:not(.ia-nav-link--active) .ia-nav-pill:hover
+          .ia-nav-icon-wrap--only {
+          background: rgba(30, 41, 59, 0.9);
+        }
+
+        .ia-nav-icon-svg {
+          width: 22px !important;
+          height: 22px !important;
+          display: block;
+        }
+
+        /* Avatar styles */
+        .ia-nav-avatar-wrap {
+          width: 24px;
+          height: 24px;
+          border-radius: 999px;
+          border: 1.4px solid rgba(255, 255, 255, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #02030a;
+          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.95);
+        }
+
+        .ia-nav-avatar-wrap--pill {
+          width: 26px;
+          height: 26px;
         }
 
         .ia-nav-avatar {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: black;
-          color: white;
-          border: 1.5px solid rgba(255, 255, 255, 0.85);
-          font-size: 11px;
+          width: 100%;
+          height: 100%;
+          border-radius: 999px;
+          object-fit: cover;
+        }
+
+        .ia-nav-avatar-initial {
+          font-size: 12px;
           font-weight: 600;
+          color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+
+        .ia-nav-link:active .ia-nav-pill {
+          transform: scale(0.96);
+        }
+
+        @media (min-width: 1024px) {
+          .ia-nav {
+            height: 72px;
+          }
+
+          .ia-nav-inner {
+            max-width: 640px;
+          }
         }
       `}</style>
     </nav>
