@@ -41,9 +41,9 @@ export default function BottomNav() {
     return currentPath === path || currentPath.startsWith(path + '/');
   };
 
-  // --- ICONS ------------------------------------------------------
+  // ICONS
   const renderIcon = (href) => {
-    const commonProps = {
+    const common = {
       viewBox: '0 0 24 24',
       className: 'ia-nav-icon-svg',
       'aria-hidden': 'true',
@@ -52,7 +52,7 @@ export default function BottomNav() {
     // Home
     if (href.startsWith('/dashboard')) {
       return (
-        <svg {...commonProps}>
+        <svg {...common}>
           <path
             d="M5 10.5 12 4l7 6.5V19a1.2 1.2 0 0 1-1.2 1.2h-3.8a.7.7 0 0 1-.7-.7v-4.3H10v4.3a.7.7 0 0 1-.7.7H5.5A1.2 1.2 0 0 1 4.3 19v-8.5Z"
             fill="none"
@@ -65,10 +65,10 @@ export default function BottomNav() {
       );
     }
 
-    // Courses (playbook / video card)
+    // Courses
     if (href.startsWith('/courses')) {
       return (
-        <svg {...commonProps}>
+        <svg {...common}>
           <rect
             x="4"
             y="4"
@@ -87,48 +87,44 @@ export default function BottomNav() {
       );
     }
 
-    // Noticeboard (board + pin style)
-if (href.startsWith('/noticeboard')) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="ia-nav-icon-svg"
-      aria-hidden="true"
-    >
-      {/* board / card */}
-      <path
-        d="M8 7h6a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* pin circle */}
-      <circle
-        cx="9"
-        cy="7"
-        r="2.2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      {/* connector arm */}
-      <path
-        d="M10.5 8.5 13 11"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+    // Noticeboard (board + pin / key style)
+    if (href.startsWith('/noticeboard')) {
+      return (
+        <svg {...common}>
+          {/* board */}
+          <path
+            d="M8 7h6a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* pin circle */}
+          <circle
+            cx="9"
+            cy="7"
+            r="2.2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
+          {/* arm */}
+          <path
+            d="M10.5 8.5 13 11"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    }
 
-    // Admin (cog)
+    // Admin
     if (href.startsWith('/admin')) {
       return (
-        <svg {...commonProps}>
+        <svg {...common}>
           <circle
             cx="12"
             cy="12"
@@ -149,7 +145,7 @@ if (href.startsWith('/noticeboard')) {
       );
     }
 
-    // Fallback dot
+    // fallback dot
     return <span className="ia-nav-icon-svg">•</span>;
   };
 
@@ -160,60 +156,40 @@ if (href.startsWith('/noticeboard')) {
           const active = isActive(item.href);
           const isProfile = item.href.startsWith('/profile');
 
-          const linkClass = active
-            ? 'ia-nav-link ia-nav-link--active'
-            : 'ia-nav-link';
-
-          return (
-            <Link key={item.href} href={item.href} className={linkClass}>
-              {/* ACTIVE: pill with icon + label */}
-              {active ? (
-                <span className="ia-nav-pill ia-nav-pill--active">
-                  <span className="ia-nav-icon-wrap">
-                    {isProfile ? (
-                      <span className="ia-nav-avatar-wrap ia-nav-avatar-wrap--pill">
-                        {avatarUrl ? (
-                          <img
-                            src={avatarUrl}
-                            alt="Profile"
-                            className="ia-nav-avatar"
-                          />
-                        ) : (
-                          <span className="ia-nav-avatar ia-nav-avatar-initial">
-                            {avatarInitial}
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      renderIcon(item.href)
-                    )}
-                  </span>
-                  <span className="ia-nav-label">{item.label}</span>
-                </span>
+          const icon = isProfile ? (
+            <span className="ia-nav-avatar-wrap">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" className="ia-nav-avatar" />
               ) : (
-                // INACTIVE: only circular icon
-                <span className="ia-nav-pill">
-                  <span className="ia-nav-icon-wrap ia-nav-icon-wrap--only">
-                    {isProfile ? (
-                      <span className="ia-nav-avatar-wrap">
-                        {avatarUrl ? (
-                          <img
-                            src={avatarUrl}
-                            alt="Profile"
-                            className="ia-nav-avatar"
-                          />
-                        ) : (
-                          <span className="ia-nav-avatar ia-nav-avatar-initial">
-                            {avatarInitial}
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      renderIcon(item.href)
-                    )}
-                  </span>
+                <span className="ia-nav-avatar ia-nav-avatar-initial">
+                  {avatarInitial}
                 </span>
               )}
+            </span>
+          ) : (
+            renderIcon(item.href)
+          );
+
+          if (active) {
+            // ACTIVE: pill with icon + label
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="ia-nav-link ia-nav-link--active"
+              >
+                <span className="ia-nav-pill">
+                  <span className="ia-nav-icon-wrap">{icon}</span>
+                  <span className="ia-nav-label">{item.label}</span>
+                </span>
+              </Link>
+            );
+          }
+
+          // INACTIVE: circle with icon
+          return (
+            <Link key={item.href} href={item.href} className="ia-nav-link">
+              <span className="ia-nav-circle">{icon}</span>
             </Link>
           );
         })}
@@ -225,10 +201,10 @@ if (href.startsWith('/noticeboard')) {
           left: 0;
           right: 0;
           bottom: 0;
-          height: 70px;
+          height: 64px;
           z-index: 999;
           background: radial-gradient(circle at top, #050815, #02030a 70%);
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -239,99 +215,77 @@ if (href.startsWith('/noticeboard')) {
           display: flex;
           align-items: center;
           justify-content: space-around;
-          padding: 0 18px;
+          padding: 0 16px;
           gap: 12px;
         }
 
         .ia-nav-link {
           flex: 1;
           display: flex;
+          align-items: center;
           justify-content: center;
           text-decoration: none;
-          color: rgba(255, 255, 255, 0.72);
+          color: rgba(255, 255, 255, 0.9);
         }
 
         .ia-nav-link--active {
           color: #ffffff;
         }
 
-        /* Base “slot” */
+        /* ACTIVE pill */
         .ia-nav-pill {
-          min-width: 44px;
-          max-width: 110px;
+          min-width: 120px;
           height: 44px;
+          padding: 0 18px;
           border-radius: 999px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: transparent;
-          transition: background 0.16s ease-out, box-shadow 0.16s ease-out,
-            border-color 0.16s ease-out, transform 0.08s ease-out;
-        }
-
-        /* ACTIVE pill – icon + label like your inspiration */
-        .ia-nav-pill--active {
-          padding: 0 16px 0 10px;
-          justify-content: flex-start;
           gap: 8px;
-          background: radial-gradient(
-              circle at top left,
-              rgba(255, 255, 255, 0.18),
-              transparent 60%
-            ),
-            rgba(5, 10, 64, 0.96);
-          border: 1px solid rgba(245, 219, 160, 0.9);
-          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.9);
+          background: radial-gradient(circle at top, #101a63, #050824 70%);
+          border: 1px solid rgba(246, 231, 184, 0.95);
+          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.95);
         }
 
         .ia-nav-label {
           font-size: 13px;
-          font-weight: 500;
-          white-space: nowrap;
+          font-weight: 600;
         }
 
-        .ia-nav-icon-wrap {
-          width: 24px;
-          height: 24px;
+        /* INACTIVE circles */
+        .ia-nav-circle {
+          width: 42px;
+          height: 42px;
+          border-radius: 999px;
           display: flex;
           align-items: center;
           justify-content: center;
+          background: radial-gradient(
+            circle at center,
+            rgba(45, 55, 110, 0.45),
+            rgba(10, 15, 40, 0.95)
+          );
+          backdrop-filter: blur(8px);
+          box-shadow: 0 12px 26px rgba(0, 0, 0, 0.85);
         }
 
-        /* inactive icon circle */
-        .ia-nav-icon-wrap--only {
-          border-radius: 999px;
-          background: rgba(15, 23, 42, 0.8);
-          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.85);
-        }
-
-        .ia-nav-link:not(.ia-nav-link--active) .ia-nav-pill:hover
-          .ia-nav-icon-wrap--only {
-          background: rgba(30, 41, 59, 0.9);
-        }
-
+        /* icon size */
         .ia-nav-icon-svg {
-          width: 22px !important;
-          height: 22px !important;
+          width: 24px;
+          height: 24px;
           display: block;
         }
 
-        /* Avatar styles */
+        /* avatar styles */
         .ia-nav-avatar-wrap {
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: 999px;
-          border: 1.4px solid rgba(255, 255, 255, 0.8);
+          border: 1.6px solid rgba(255, 255, 255, 0.9);
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #02030a;
-          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.95);
-        }
-
-        .ia-nav-avatar-wrap--pill {
-          width: 26px;
-          height: 26px;
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.85);
         }
 
         .ia-nav-avatar {
@@ -342,23 +296,19 @@ if (href.startsWith('/noticeboard')) {
         }
 
         .ia-nav-avatar-initial {
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 600;
+          background: #000000;
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .ia-nav-link:active .ia-nav-pill {
-          transform: scale(0.96);
-        }
-
         @media (min-width: 1024px) {
           .ia-nav {
-            height: 72px;
+            height: 66px;
           }
-
           .ia-nav-inner {
             max-width: 640px;
           }
