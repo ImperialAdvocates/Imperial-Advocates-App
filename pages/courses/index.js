@@ -195,17 +195,15 @@ export default function CoursesIndexPage() {
         }
 
         .courses-hero {
-          border-radius: 22px;
-          padding: 18px 20px 20px;
-          background: radial-gradient(
-            circle at top left,
-            #152484 0%,
-            #050a3f 40%,
-            #020317 100%
-          );
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85);
-        }
+  border-radius: 22px;
+  padding: 18px 20px 20px;
+
+  /* IA Master Gradient */
+  background: linear-gradient(90deg, #f4a261, #e76f51, #1b1f6b);
+
+  box-shadow: 0 22px 55px rgba(0,0,0,0.85);
+  overflow: hidden;
+}
 
         .hero-left {
           display: flex;

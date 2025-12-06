@@ -188,18 +188,18 @@ export default function NoticeboardPage() {
 
           /* HERO */
           .nb-hero {
-            border-radius: 22px;
-            padding: 18px 20px 16px;
-            background: radial-gradient(
-              circle at top left,
-              #f8b45a 0%,
-              #d94841 30%,
-              #060b3e 80%
-            );
-            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: #fff;
-          }
+  border-radius: 22px;
+  padding: 18px 20px 16px;
+
+  /* IA Master Gradient */
+  background: linear-gradient(90deg, #f4a261, #e76f51, #1b1f6b);
+
+  box-shadow: 0 22px 55px rgba(0,0,0,0.9);
+  color: #fff;
+
+  /* Fixes the vertical bar on the right */
+  overflow: hidden;
+}
 
           .nb-hero-top {
             display: flex;

@@ -1,95 +1,109 @@
 // components/bottomnav.js
-import Link from 'next/link';
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useProfile } from "../hooks/useProfile";
 
-export default function BottomNav({
-  items,
-  currentPath,
-  avatarInitial = 'I',
-  avatarUrl = null,
-}) {
+export default function BottomNav() {
+  const router = useRouter();
+  const { profile, isAdmin } = useProfile() || {};
+
+  const currentPath = router.asPath || router.pathname || "/";
+
+  const avatarInitial =
+    (profile?.first_name && profile.first_name.trim()[0]) ||
+    (profile?.username && profile.username.trim()[0]) ||
+    (profile?.email && profile.email.trim()[0]) ||
+    "I";
+
+  const items = [
+    { href: "/dashboard", key: "home" },
+    { href: "/courses", key: "courses" },
+    { href: "/noticeboard", key: "pin" },
+    { href: "/profile", key: "profile" },
+  ];
+
+  if (isAdmin) {
+    items.splice(3, 0, { href: "/admin", key: "admin" });
+  }
+
   const isActive = (path) => {
-    if (path === '/dashboard') {
-      return currentPath === '/' || currentPath === '/dashboard';
+    if (path === "/dashboard") {
+      return currentPath === "/" || currentPath === "/dashboard";
     }
-    return currentPath === path || currentPath.startsWith(path + '/');
+    return currentPath === path || currentPath.startsWith(path + "/");
   };
 
-  const renderIcon = (href) => {
-    if (href.startsWith('/dashboard')) {
-      return (
-        <svg viewBox="0 0 24 24" className="ia-nav-icon-svg" aria-hidden="true">
+  const stroke = 1.8;
+  const size = 22;
+
+  const icons = {
+    home: (
+      <svg viewBox="0 0 24 24" width={size} height={size}>
+        <path
+          d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5a.5.5 0 0 1-.5-.5v-5h-4v5a.5.5 0 0 1-.5.5H5a1 1 0 0 1-1-1v-9.5Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+
+    courses: (
+      <svg viewBox="0 0 24 24" width={size} height={size}>
+        <rect
+          x="3.6"
+          y="3.6"
+          width="16.8"
+          height="16.8"
+          rx="4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={stroke}
+        />
+        <path
+          d="M10 15.5V8.5a.8.8 0 0 1 1.2-.6l4.4 3.4a.8.8 0 0 1 0 1.2l-4.4 3.4a.8.8 0 0 1-1.2-.4Z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
+
+    pin: (
+      <svg viewBox="0 0 24 24" width={size} height={size}>
+        <g transform="scale(0.9) translate(1.3 1.3)">
           <path
-            d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5a.5.5 0 0 1-.5-.5v-5h-4v5a.5.5 0 0 1-.5.5H5a1 1 0 0 1-1-1v-9.5Z"
+            d="M12 3.5c-2.3 0-4.3 1.9-4.3 4.3 0 3.1 3.3 6.9 4 7.7.2.2.5.2.7 0 .7-.8 4.1-4.6 4.1-7.7 0-2.4-2-4.3-4.5-4.3Zm0 6a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5Z"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth={stroke}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </svg>
-      );
-    }
+        </g>
+      </svg>
+    ),
 
-    if (href.startsWith('/courses')) {
-      return (
-        <svg viewBox="0 0 24 24" className="ia-nav-icon-svg" aria-hidden="true">
-          <rect
-            x="3.5"
-            y="3.5"
-            width="17"
-            height="17"
-            rx="4.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <path
-            d="M10 15.3V8.7a.6.6 0 0 1 .9-.5l4.4 3.3a.6.6 0 0 1 0 1l-4.4 3.3a.6.6 0 0 1-.9-.5Z"
-            fill="currentColor"
-          />
-        </svg>
-      );
-    }
-
-    if (href.startsWith('/noticeboard')) {
-      return (
-        <svg viewBox="0 0 24 24" className="ia-nav-icon-svg" aria-hidden="true">
-          <path
-            d="M4.5 11.5 18.5 5l-4.3 14-2.1-5.6-5.6-1.9Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    }
-
-    if (href.startsWith('/admin')) {
-      return (
-        <svg viewBox="0 0 24 24" className="ia-nav-icon-svg" aria-hidden="true">
-          <circle
-            cx="12"
-            cy="12"
-            r="3.2"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          />
-          <path
-            d="M4.8 12a7.2 7.2 0 0 1 .1-1l-1.7-1.3 1.8-3.1 2 .6a7 7 0 0 1 1.7-1l.3-2.1h3.6l.3 2.1a7 7 0 0 1 1.7 1l2-.6 1.8 3.1-1.7 1.3a7.2 7.2 0 0 1 0 2l1.7 1.3-1.8 3.1-2-.6a7 7 0 0 1-1.7 1l-.3 2.1H9.2l-.3-2.1a7 7 0 0 1-1.7-1l-2 .6-1.8-3.1 1.7-1.3a7.2 7.2 0 0 1-.1-1Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    }
-
-    return <span className="ia-nav-icon-svg">•</span>;
+    admin: (
+      <svg viewBox="0 0 24 24" width={size} height={size}>
+        <circle
+          cx="12"
+          cy="12"
+          r="3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={stroke}
+        />
+        <path
+          d="M4.8 12a7.1 7.1 0 0 1 .1-1l-1.7-1.3 1.7-3 2 .6a7 7 0 0 1 1.6-1l.3-2h3.4l.3 2a7 7 0 0 1 1.6 1l2-.6 1.7 3-1.7 1.3a7.1 7.1 0 0 1 0 2l1.7 1.3-1.7 3-2-.6a7 7 0 0 1-1.6 1l-.3 2H9.3l-.3-2a7 7 0 0 1-1.6-1l-2 .6-1.7-3 1.7-1.3Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
   };
 
   return (
@@ -97,35 +111,23 @@ export default function BottomNav({
       <div className="ia-nav-inner">
         {items.map((item) => {
           const active = isActive(item.href);
-          const isProfile = item.href.startsWith('/profile');
+          const isProfile = item.href.startsWith("/profile");
+
+          const pillClass = active
+            ? "ia-nav-pill ia-nav-pill--active"
+            : "ia-nav-pill";
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={active ? 'ia-nav-link active' : 'ia-nav-link'}
-            >
-              <span className="ia-nav-icon-wrap">
+            <Link key={item.href} href={item.href} className="ia-nav-link">
+              <span className={pillClass}>
                 {isProfile ? (
-                  <span className="ia-nav-avatar-wrap">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Profile"
-                        className="ia-nav-avatar"
-                      />
-                    ) : (
-                      <span className="ia-nav-avatar ia-nav-avatar-initial">
-                        {avatarInitial}
-                      </span>
-                    )}
+                  <span className="ia-nav-avatar">
+                    {avatarInitial}
                   </span>
                 ) : (
-                  renderIcon(item.href)
+                  icons[item.key]
                 )}
               </span>
-
-              <span className="ia-nav-label">{item.label}</span>
             </Link>
           );
         })}
@@ -137,94 +139,64 @@ export default function BottomNav({
           left: 0;
           right: 0;
           bottom: 0;
-          height: 54px;
+          height: 70px;
+          background: radial-gradient(circle at top, #050815, #02030a 70%);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           z-index: 999;
-          background: rgba(0, 0, 0, 0.92);
-          border-top: 1px solid rgba(255, 255, 255, 0.12);
-          padding-bottom: env(safe-area-inset-bottom);
         }
 
         .ia-nav-inner {
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          height: 100%;
           max-width: 900px;
           margin: 0 auto;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-around;
-          padding: 0 12px;
         }
 
         .ia-nav-link {
           flex: 1;
           display: flex;
-          flex-direction: column;
-          align-items: center;
           justify-content: center;
-          text-decoration: none;
-          color: rgba(255, 255, 255, 0.75);
-          font-size: 9px;
-          line-height: 1.1;
-          gap: 3px;
-          transition: color 0.14s ease-out, transform 0.1s ease-out;
         }
 
-        .ia-nav-link.active {
-          color: #ffffff;
-        }
-
-        .ia-nav-icon-wrap {
-          width: 18px;
-          height: 18px;
+        .ia-nav-pill {
+          width: 42px;
+          height: 42px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: 0.2s;
         }
 
-        .ia-nav-icon-svg {
-          width: 100% !important;
-          height: 100% !important;
-          display: block;
+        .ia-nav-pill--active {
+          background: linear-gradient(
+            140deg,
+            rgba(40, 55, 110, 0.7),
+            rgba(10, 12, 30, 0.9)
+          );
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95);
+          backdrop-filter: blur(16px);
         }
 
-        .ia-nav-avatar-wrap {
-          width: 18px;
-          height: 18px;
-          border-radius: 999px;
-          border: 1.3px solid rgba(255, 255, 255, 0.85);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .ia-nav-pill:not(.ia-nav-pill--active):hover {
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .ia-nav-avatar {
-          width: 100%;
-          height: 100%;
-          border-radius: 999px;
-          object-fit: cover;
-        }
-
-        .ia-nav-avatar-initial {
-          font-size: 9px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: black;
+          color: white;
+          border: 1.5px solid rgba(255, 255, 255, 0.85);
+          font-size: 11px;
           font-weight: 600;
-          background: #f97316;
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-
-        .ia-nav-link:active .ia-nav-icon-wrap,
-        .ia-nav-link:active .ia-nav-avatar-wrap {
-          transform: scale(0.9);
-        }
-
-        @media (min-width: 1024px) {
-          .ia-nav {
-            height: 56px;
-          }
-
-          .ia-nav-inner {
-            max-width: 640px;
-          }
         }
       `}</style>
     </nav>

@@ -1,36 +1,10 @@
 // components/LayoutShell.js
-import { useRouter } from 'next/router';
-import { useProfile } from '../hooks/useProfile';
 import BottomNav from './bottomnav';
 
 export default function LayoutShell({ children }) {
-  const router = useRouter();
-  const { profile, isAdmin } = useProfile() || {};
-
-  // Base nav items
-  const baseNavItems = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/courses', label: 'Courses' },
-    { href: '/noticeboard', label: 'Noticeboard' },
-  ];
-
-  // Build final nav: base + optional admin + profile last
-  const navItems = [
-    ...baseNavItems,
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
-    { href: '/profile', label: 'Profile' },
-  ];
-
-  const avatarInitial =
-    (profile?.first_name && profile.first_name[0]?.toUpperCase()) ||
-    (profile?.email && profile.email[0]?.toUpperCase()) ||
-    'I';
-
-  const avatarUrl = profile?.avatar_url || null;
-
   return (
     <div className="ia-shell">
-      {/* TOP BANNER */}
+      {/* TOP BANNER (your original white header) */}
       <header className="ia-header">
         <div className="ia-header-bar">
           <div className="ia-header-brand">
@@ -50,21 +24,15 @@ export default function LayoutShell({ children }) {
         <div className="ia-main-inner">{children}</div>
       </main>
 
-      {/* BOTTOM NAV */}
-      <BottomNav
-        items={navItems}
-        currentPath={router.pathname}
-        avatarInitial={avatarInitial}
-        avatarUrl={avatarUrl}
-      />
+      {/* BOTTOM NAV (tab bar) */}
+      <BottomNav />
 
       <style jsx>{`
         .ia-shell {
           min-height: 100vh;
           background: radial-gradient(circle at top, #0d1a80 0%, #020316 55%);
           color: #fff;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro',
-            'Segoe UI', sans-serif;
+          font-family: inherit;
           display: flex;
           flex-direction: column;
           padding-top: 86px; /* header height */
@@ -175,6 +143,33 @@ export default function LayoutShell({ children }) {
           .ia-main-inner {
             padding: 8px 12px 28px;
           }
+        }
+      `}</style>
+
+      {/* Global reset & hide old navbars so no ghost text behind bottom nav */}
+      <style jsx global>{`
+        html,
+        body {
+          padding: 0;
+          margin: 0;
+          font-family: inherit;
+          background: #020316;
+          color: #f9fafb;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        a {
+          color: inherit;
+        }
+
+        /* Hide any previous header/nav implementations */
+        .top-nav,
+        .nav-links-desktop,
+        .nav-links-mobile {
+          display: none !important;
         }
       `}</style>
     </div>

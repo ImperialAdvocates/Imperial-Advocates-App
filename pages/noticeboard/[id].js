@@ -177,11 +177,11 @@ export default function NoticeboardPostPage() {
         <style jsx>{`
           .post-root {
             max-width: 1040px;
-            margin: 0 auto;
-            padding: 18px 16px 80px;
+            margin:-90px 0 auto;
+            padding: 16px 16px 80px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
           }
 
           .back-link {

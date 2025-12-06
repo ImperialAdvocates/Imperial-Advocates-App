@@ -5,67 +5,101 @@ import { supabase } from '../lib/supabaseClient';
 export function useProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
     async function loadProfile() {
+      setLoading(true);
+
       try {
-        setLoading(true);
+        let user = null;
 
-        // 1) Get the logged-in auth user
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+        try {
+          const { data, error } = await supabase.auth.getUser();
 
-        if (userError) {
-          console.error('Error getting auth user:', userError);
+          if (error) {
+            console.warn('supabase.auth.getUser error:', error);
+          } else {
+            user = data?.user ?? null;
+          }
+        } catch (err) {
+          if (err?.name === 'AuthSessionMissingError') {
+            console.warn(
+              'No auth session found (AuthSessionMissingError) – treating as logged out.'
+            );
+          } else {
+            console.error('Unexpected getUser error:', err);
+          }
         }
 
         if (!user) {
-          if (mounted) {
+          if (!cancelled) {
             setProfile(null);
+            setIsAdmin(false);
             setLoading(false);
           }
           return;
         }
 
-        // 2) Load ONLY the columns that actually exist in your table
-        //    (id, username, role, maybe full_name)
-        const { data, error } = await supabase
+        // 1) SELECT email as well
+        const { data: rows, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username, role') // 👈 match your table
+          .select('id, username, full_name, role, email')   // 👈 added email here
           .eq('id', user.id)
-          .single();
+          .limit(1);
 
-        if (error) {
-          console.error('Error loading profile row:', error);
-
-          // Fallback: build a minimal profile from auth user
-          if (mounted) {
-            setProfile({
-              id: user.id,
-              email: user.email,
-              username: user.email?.split('@')[0] || null,
-              first_name: null,
-              role: 'user', // fallback if table row can't be read
-            });
+        if (profileError) {
+          console.error('Error loading profile row:', profileError);
+          if (!cancelled) {
+            setProfile(null);
+            setIsAdmin(false);
+            setLoading(false);
           }
-        } else if (mounted) {
-          // Merge DB row with auth user info
-          setProfile({
-            ...data,
-            email: user.email, // email comes from auth, not table
-          });
+          return;
+        }
+
+        let row = rows?.[0];
+
+        // 2) If no row yet, CREATE it with email
+        if (!row) {
+          const { data, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,                               // 👈 new
+              username: user.email?.split('@')[0] ?? null,
+              full_name: user.user_metadata?.full_name ?? null,
+              role: 'user', // default
+            })
+            .select('id, username, full_name, role, email')     // 👈 include email
+            .single();
+
+          if (insertError) {
+            console.error('Error inserting profile:', insertError);
+            if (!cancelled) {
+              setProfile(null);
+              setIsAdmin(false);
+              setLoading(false);
+            }
+            return;
+          }
+
+          row = data;
+        }
+
+        if (!cancelled) {
+          setProfile(row);
+          setIsAdmin(row.role === 'admin');
+          setLoading(false);
+          console.log('PROFILE LOADED', row);
         }
       } catch (err) {
-        console.error('Unexpected useProfile error:', err);
-        if (mounted) {
+        console.error('Unexpected error in useProfile:', err);
+        if (!cancelled) {
           setProfile(null);
-        }
-      } finally {
-        if (mounted) {
+          setIsAdmin(false);
           setLoading(false);
         }
       }
@@ -74,18 +108,9 @@ export function useProfile() {
     loadProfile();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, []);
 
-  // 🔍 DEBUG: see what we actually got
-  if (typeof window !== 'undefined') {
-    console.log('useProfile profile:', profile);
-  }
-
-  return {
-    profile,
-    loading,
-    isAdmin: profile?.role === 'admin',
-  };
+  return { profile, isAdmin, loading };
 }
