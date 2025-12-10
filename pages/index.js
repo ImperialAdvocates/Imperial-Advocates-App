@@ -216,9 +216,9 @@ export default function LoginPage() {
           padding: 11px 16px;
           font-size: 15px;
           font-weight: 600;
-          background: linear-gradient(135deg, #ff9f6a, #ff5f6a);
+          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
           color: #ffffff;
-          box-shadow: 0 10px 25px rgba(255, 120, 96, 0.35);
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
         }
 
         .primary-btn[disabled] {

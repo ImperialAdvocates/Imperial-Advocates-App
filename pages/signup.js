@@ -33,7 +33,7 @@ export default function SignupPage() {
     try {
       setLoading(true);
 
-      // 1️⃣ Create Supabase Auth user
+      // 1) Create Supabase Auth user
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email: email.trim(),
@@ -62,12 +62,12 @@ export default function SignupPage() {
         throw new Error('User not returned from Supabase.');
       }
 
-      // 2️⃣ Decide username
+      // 2) Decide username
       const username = fullName
         ? fullName.trim().replace(/\s+/g, '_').toLowerCase()
         : generateUsername(email);
 
-      // 3️⃣ Upsert profile row
+      // 3) Upsert profile row
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert(
@@ -106,29 +106,19 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="auth-root">
-      <div className="auth-shell">
-        {/* Top branding header (same as index.js) */}
-        <header className="auth-header">
-          <div className="logo-wrap">
-            <img
-              src="/ia-logo.png"
-              alt="Imperial Advocates"
-              className="logo-img"
-            />
+    <div className="login-page">
+      <div className="login-inner">
+        {/* IA Header – same as login */}
+        <header className="login-header">
+          <img src="/ia-logo.png" alt="IA" className="header-logo" />
+          <div className="header-text">
+            <h1 className="header-title">IMPERIAL ADVOCATES</h1>
+            <p className="header-sub">Investor Training &amp; Client Portal</p>
           </div>
-          <p className="brand-kicker">IMPERIAL ADVOCATES</p>
-          <h1 className="brand-title">
-            Investor Training &amp; Client Portal
-          </h1>
-          <p className="brand-subtitle">
-            Create your login to access your NDIS, co-living and rooming house
-            training, resources and client updates.
-          </p>
         </header>
 
-        {/* Main card – same styling as login, different content */}
-        <main className="card">
+        {/* Card – same shell as login, different copy/fields */}
+        <main className="login-card">
           <h2 className="card-title">Create your account</h2>
           <p className="card-subtitle">
             Enter your details to create your Imperial Advocates portal login.
@@ -175,122 +165,90 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <div className="auth-footer">
+          <div className="footer-row">
             <span>Already have an account?</span>
-            <Link href="/" className="link">
+            <Link href="/" className="footer-link">
               Sign in
             </Link>
           </div>
         </main>
       </div>
 
-      {/* STYLES – copied from index.js so layout matches exactly */}
       <style jsx>{`
-        .auth-root {
+        .login-page {
           min-height: 100vh;
+          background: #f5f7fb;
           display: flex;
-          align-items: center;
           justify-content: center;
-          padding: 16px;
-          background: radial-gradient(
-              circle at top left,
-              rgba(217, 72, 65, 0.35),
-              transparent 55%
-            ),
-            radial-gradient(
-              circle at bottom right,
-              rgba(198, 166, 103, 0.28),
-              transparent 50%
-            ),
-            radial-gradient(
-              circle at top right,
-              rgba(10, 20, 124, 0.85),
-              #020314 70%
-            );
-          color: #ffffff;
+          padding: 24px 16px;
         }
 
-        .auth-shell {
+        .login-inner {
           width: 100%;
-          max-width: 960px;
-          display: grid;
-          grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-          gap: 24px;
-          align-items: center;
+          max-width: 420px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
 
-        .auth-header {
-          padding: 18px 10px 18px 0;
-        }
-
-        .logo-wrap {
-          width: 72px;
-          height: 72px;
-          border-radius: 18px;
-          background: radial-gradient(
-            circle at top left,
-            rgba(198, 166, 103, 0.5),
-            rgba(5, 10, 64, 0.95)
-          );
+        /* HEADER — matches login/dashboard */
+        .login-header {
           display: flex;
           align-items: center;
-          justify-content: center;
-          margin-bottom: 10px;
-          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+          gap: 10px;
+          padding: 12px 16px;
+          background: #ffffff;
+          border-radius: 16px;
+          box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
         }
 
-        .logo-img {
-          max-width: 56px;
-          max-height: 56px;
+        .header-logo {
+          width: 48px;
+          height: 48px;
           object-fit: contain;
         }
 
-        .brand-kicker {
-          font-size: 11px;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          opacity: 0.8;
-          margin: 0 0 4px;
+        .header-text {
+          display: flex;
+          flex-direction: column;
+          line-height: 1.2;
         }
 
-        .brand-title {
-          margin: 0 0 8px;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        .brand-subtitle {
+        .header-title {
           margin: 0;
-          font-size: 13px;
-          max-width: 380px;
-          opacity: 0.9;
+          font-size: 14px;
+          font-weight: 700;
+          color: #151827;
         }
 
-        .card {
+        .header-sub {
+          margin: 0;
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        /* CARD */
+        .login-card {
+          background: #ffffff;
           border-radius: 22px;
-          padding: 20px 20px 22px;
-          background: radial-gradient(
-              circle at top left,
-              rgba(255, 255, 255, 0.06),
-              transparent 50%
-            ),
-            rgba(5, 10, 64, 0.96);
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 26px 60px rgba(0, 0, 0, 0.9);
+          padding: 20px 22px;
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
         }
 
         .card-title {
           margin: 0 0 4px;
           font-size: 18px;
           font-weight: 600;
+          color: #111827;
         }
 
         .card-subtitle {
           margin: 0 0 16px;
           font-size: 13px;
-          opacity: 0.85;
+          color: #6b7280;
         }
 
+        /* INPUTS */
         .form {
           display: flex;
           flex-direction: column;
@@ -298,118 +256,72 @@ export default function SignupPage() {
         }
 
         .field-label {
+          margin-bottom: 4px;
           font-size: 11px;
           text-transform: uppercase;
-          letter-spacing: 0.16em;
-          opacity: 0.8;
+          letter-spacing: 0.12em;
+          color: #6b7280;
         }
 
         .field-input {
           width: 100%;
           border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          background: rgba(2, 4, 26, 0.95);
+          border: 1px solid #d1d5db;
+          background: #f9fafb;
+          color: #111827;
           padding: 10px 12px;
           font-size: 14px;
-          color: #ffffff;
-        }
-
-        .field-input::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 10px;
         }
 
         .field-input:focus {
           outline: none;
-          border-color: rgba(246, 231, 184, 0.9);
-          box-shadow: 0 0 0 1px rgba(246, 231, 184, 0.7);
+          border-color: #6366f1;
+          background: #ffffff;
         }
 
         .error-text {
-          margin: 2px 0 0;
+          margin-top: -4px;
+          margin-bottom: 6px;
           font-size: 12px;
-          color: #ffb3b3;
+          color: #dc2626;
         }
 
+        /* BUTTON — same gradient as login */
         .primary-btn {
-          margin-top: 4px;
+          margin-top: 6px;
           width: 100%;
           border-radius: 999px;
           border: none;
           padding: 11px 16px;
           font-size: 15px;
           font-weight: 600;
-          cursor: pointer;
+          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
           color: #ffffff;
-          background: linear-gradient(135deg, #d94841, #ff8b5f);
-          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
-          transition: transform 0.08s ease-out, box-shadow 0.08s ease-out,
-            opacity 0.1s ease-out;
-        }
-
-        .primary-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 22px 50px rgba(0, 0, 0, 0.95);
-        }
-
-        .primary-btn:active {
-          transform: translateY(0);
-          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.9);
+          box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
         }
 
         .primary-btn[disabled] {
           opacity: 0.7;
-          cursor: default;
         }
 
-        .auth-footer {
-          margin-top: 12px;
+        /* FOOTER */
+        .footer-row {
+          margin-top: 14px;
           font-size: 13px;
           display: flex;
           gap: 4px;
           justify-content: center;
-          opacity: 0.9;
+          color: #6b7280;
         }
 
-        .link {
-          color: #f6e7b8;
+        .footer-link {
+          color: #555fe0;
           text-decoration: none;
         }
 
-        .link:hover {
+        .footer-link:hover {
           text-decoration: underline;
-        }
-
-        @media (max-width: 820px) {
-          .auth-shell {
-            grid-template-columns: minmax(0, 1fr);
-          }
-
-          .auth-header {
-            text-align: center;
-            padding: 0;
-          }
-
-          .logo-wrap {
-            margin: 0 auto 10px;
-          }
-
-          .brand-subtitle {
-            margin: 0 auto;
-          }
-
-          .card {
-            margin-top: 6px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .brand-title {
-            font-size: 20px;
-          }
-
-          .card {
-            padding: 16px 14px 18px;
-          }
         }
       `}</style>
     </div>
