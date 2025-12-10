@@ -1091,11 +1091,12 @@ export default function AdminCoursesPage() {
 }
 
 const styles = `
-  /* Shell – same as admin index / noticeboard */
+  /* Shell – light, matches dashboard */
   .admin-screen {
     width: 100%;
     display: flex;
     justify-content: center;
+    background: #f5f7fb;
     padding: 12px 16px 24px;
   }
 
@@ -1111,8 +1112,8 @@ const styles = `
   .admin-header-card {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    background: #ffffff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1147,7 +1148,7 @@ const styles = `
   .admin-link,
   .admin-link-inline {
     font-size: 12px;
-    color: #4f46e5;
+    color: #555fe0;
     text-decoration: none;
   }
 
@@ -1160,8 +1161,8 @@ const styles = `
   .admin-card {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    background: #ffffff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -1174,7 +1175,7 @@ const styles = `
     color: #111827;
   }
 
-  /* FORM BASIC */
+  /* FORM BASICS */
   .form-vertical {
     display: flex;
     flex-direction: column;
@@ -1189,8 +1190,9 @@ const styles = `
   }
 
   .muted {
-    opacity: 0.7;
+    opacity: 0.75;
     font-size: 12px;
+    color: #6b7280;
   }
 
   .field-input,
@@ -1198,7 +1200,7 @@ const styles = `
     width: 100%;
     border-radius: 10px;
     border: 1px solid #d1d5db;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    background: #f9fafb;
     padding: 8px 10px;
     font-size: 13px;
     color: #111827;
@@ -1211,9 +1213,9 @@ const styles = `
 
   .field-input:focus,
   .field-textarea:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.12);
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    border-color: #6366f1;
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.14);
   }
 
   .primary-btn {
@@ -1225,7 +1227,7 @@ const styles = `
     cursor: pointer;
     background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
     color: #ffffff;
-    box-shadow: 0 12px 28px rgba(249, 115, 22, 0.25);
+    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
     white-space: nowrap;
   }
 
