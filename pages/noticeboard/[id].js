@@ -1,7 +1,6 @@
 // pages/noticeboard/[id].js
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import Layout from '../layout';
 import { supabase } from '../../lib/supabaseClient';
 
 export default function NoticeboardPostPage() {
@@ -11,6 +10,7 @@ export default function NoticeboardPostPage() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Load single post
   useEffect(() => {
     if (!id) return;
 
@@ -36,7 +36,6 @@ export default function NoticeboardPostPage() {
 
         if (error) {
           console.error('Error loading noticeboard post:', error);
-          alert('Could not load noticeboard post. Check console.');
           router.push('/noticeboard');
           return;
         }
@@ -63,21 +62,55 @@ export default function NoticeboardPostPage() {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="post-root">
-          <p>Loading post…</p>
+      <div className="post-page">
+        <div className="post-inner">
+          <p className="post-loading">Loading update…</p>
+
+          <style jsx>{`
+            .post-page {
+              display: flex;
+              justify-content: center;
+            }
+            .post-inner {
+              width: 100%;
+              max-width: 520px;
+              padding: 12px 16px 24px;
+            }
+            .post-loading {
+              margin: 0;
+              font-size: 13px;
+              color: #6b7280;
+            }
+          `}</style>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (!post) {
     return (
-      <Layout>
-        <div className="post-root">
-          <p>Post not found.</p>
+      <div className="post-page">
+        <div className="post-inner">
+          <p className="post-loading">Update not found.</p>
+
+          <style jsx>{`
+            .post-page {
+              display: flex;
+              justify-content: center;
+            }
+            .post-inner {
+              width: 100%;
+              max-width: 520px;
+              padding: 12px 16px 24px;
+            }
+            .post-loading {
+              margin: 0;
+              font-size: 13px;
+              color: #6b7280;
+            }
+          `}</style>
         </div>
-      </Layout>
+      </div>
     );
   }
 
@@ -85,33 +118,28 @@ export default function NoticeboardPostPage() {
   const socialUrl = post.social_url || null;
   const socialPlatform =
     (post.social_platform || '').toLowerCase() || null;
-  const thumbUrl = post.ig_thumbnail_url || null;
 
   return (
-    <Layout>
-      <div className="post-root">
+    <div className="post-page">
+      <div className="post-inner">
         {/* Back link */}
         <button
           type="button"
-          className="back-link"
+          className="post-back"
           onClick={() => router.push('/noticeboard')}
         >
           ← Back to noticeboard
         </button>
 
-        {/* Header card */}
+        {/* HEADER CARD */}
         <section className="post-header-card">
           <div className="post-header-top">
-            <div className="post-header-meta">
-              <div className="post-date">
-                {formatFullDate(post.created_at)}
-              </div>
+            <div className="post-date">
+              {formatFullDate(post.created_at)}
             </div>
 
             {post.is_pinned && (
-              <span className="post-pill post-pill-pinned">
-                PINNED
-              </span>
+              <span className="post-pill post-pill-pinned">Pinned</span>
             )}
           </div>
 
@@ -120,7 +148,7 @@ export default function NoticeboardPostPage() {
           </h1>
         </section>
 
-        {/* Body */}
+        {/* BODY CARD (optional) */}
         {hasBody && (
           <section className="post-body-card">
             <div className="post-body-text">
@@ -131,226 +159,188 @@ export default function NoticeboardPostPage() {
           </section>
         )}
 
-        {/* Social post preview card */}
+        {/* SOCIAL CARD (optional) */}
         {socialUrl && (
           <section className="post-social-card">
             <div className="post-social-inner">
-              {/* LEFT: thumbnail (if provided) */}
-              {thumbUrl && (
-                <div
-                  className="post-social-thumb"
-                  style={{ backgroundImage: `url(${thumbUrl})` }}
-                />
-              )}
-
-              {/* RIGHT: text + button */}
-              <div className="post-social-content">
-                <div className="post-social-header">
-                  <span className="post-pill post-pill-platform">
-                    {(socialPlatform || 'instagram').toUpperCase()}
-                  </span>
-                  <span className="post-social-sub">
-                    Linked social update
-                  </span>
-                </div>
-
-                <div className="post-social-main">
-                  <p>
-                    This noticeboard update includes a social post. Tap
-                    the button below to open it in a new tab.
-                  </p>
-
-                  <a
-                    href={socialUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="post-social-button"
-                  >
-                    Open {socialPlatform || 'instagram'} post →
-                  </a>
-                </div>
+              <div className="post-social-header">
+                <span className="post-pill post-pill-platform">
+                  {(socialPlatform || 'instagram').toUpperCase()}
+                </span>
+                <span className="post-social-sub">
+                  Linked social update
+                </span>
               </div>
+
+              <p className="post-social-copy">
+                This noticeboard post includes a social media update. Tap
+                the button below to open it in a new tab.
+              </p>
+
+              <a
+                href={socialUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="post-social-button"
+              >
+                Open {socialPlatform || 'instagram'} post →
+              </a>
             </div>
           </section>
         )}
+      </div>
 
-        <style jsx>{`
-          .post-root {
-            max-width: 1040px;
-            margin:-90px 0 auto;
-            padding: 16px 16px 80px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-          }
+      <style jsx>{`
+        /* MATCH DASHBOARD + NOTICEBOARD WIDTH */
+        .post-page {
+          display: flex;
+          justify-content: center;
+        }
 
-          .back-link {
-            align-self: flex-start;
-            border: none;
-            background: none;
-            color: #f6e7b8;
-            font-size: 13px;
-            cursor: pointer;
-            padding: 4px 0;
-          }
+        .post-inner {
+          width: 100%;
+          max-width: 520px; /* same as dashboard & nb-phone */
+          padding: 12px 16px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
 
-          .post-header-card {
-            border-radius: 22px;
-            padding: 18px 20px;
-            background: linear-gradient(
-              90deg,
-              #f4a261,
-              #e76f51,
-              #1b1f6b
-            );
-            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
-            color: #ffffff;
-          }
+        .post-back {
+          align-self: flex-start;
+          margin-bottom: 4px;
+          border: none;
+          background: none;
+          padding: 0;
+          font-size: 13px;
+          color: #4f46e5;
+          cursor: pointer;
+        }
 
-          .post-header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-          }
+        /* WHITE HEADER CARD */
+        .post-header-card {
+          border-radius: 20px;
+          padding: 14px 16px 16px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+        }
 
-          .post-date {
-            font-size: 12px;
-            opacity: 0.9;
-          }
+        .post-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+        }
 
-          .post-pill {
-            padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-          }
+        .post-date {
+          font-size: 12px;
+          color: #6b7280;
+        }
 
-          .post-pill-pinned {
-            background: rgba(0, 0, 0, 0.25);
-          }
+        .post-title {
+          margin: 4px 0 0;
+          font-size: 20px;
+          font-weight: 700;
+          color: #111827;
+        }
 
-          .post-title {
-            margin: 4px 0 0;
-            font-size: 24px;
-            font-weight: 700;
-          }
+        .post-pill {
+          display: inline-flex;
+          align-items: center;
+          padding: 3px 10px;
+          border-radius: 999px;
+          font-size: 10px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          font-weight: 600;
+        }
 
-          .post-body-card {
-            border-radius: 20px;
-            padding: 16px 20px;
-            background: rgba(3, 6, 40, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-          }
+        .post-pill-pinned {
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fbbf24;
+        }
 
-          .post-body-text p {
-            margin: 0 0 8px;
-            font-size: 14px;
-            line-height: 1.6;
+        /* BODY CARD */
+        .post-body-card {
+          border-radius: 20px;
+          padding: 14px 16px 16px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+        }
+
+        .post-body-text p {
+          margin: 0 0 8px;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #111827;
+        }
+
+        /* SOCIAL CARD – BLUE GRADIENT */
+        .post-social-card {
+          border-radius: 22px;
+          padding: 18px 20px;
+          background: radial-gradient(
+            circle at top left,
+            #6366f1 0%,
+            #312e81 40%,
+            #111827 90%
+          );
+          box-shadow:
+            0 26px 70px rgba(15, 23, 42, 0.75),
+            0 0 0 1px rgba(59, 130, 246, 0.5);
+          color: #e5e7eb;
+        }
+
+        .post-social-inner {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .post-pill-platform {
+          background: rgba(15, 23, 42, 0.4);
+          color: #e5e7eb;
+          border: 1px solid rgba(191, 219, 254, 0.7);
+        }
+
+        .post-social-sub {
+          font-size: 12px;
+          color: #e5e7eb;
+          opacity: 0.85;
+          margin-left: 10px;
+        }
+
+        .post-social-copy {
+          margin: 0;
+          font-size: 13px;
+        }
+
+        .post-social-button {
+          margin-top: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 9px 18px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, #4f46e5, #6366f1);
+          color: #f9fafb;
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.7);
+        }
+
+        @media (max-width: 720px) {
+          .post-inner {
+            padding: 10px 12px 12px;
           }
 
           .post-social-card {
-            border-radius: 20px;
-            padding: 16px 18px;
-            background: radial-gradient(
-              circle at top left,
-              #e84a5f 0%,
-              #b95dff 40%,
-              #020316 100%
-            );
-            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
+            padding: 16px 14px;
           }
-
-          .post-social-inner {
-            display: flex;
-            gap: 14px;
-            align-items: stretch;
-            color: #fff;
-          }
-
-          .post-social-thumb {
-            width: 140px;
-            border-radius: 16px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            flex-shrink: 0;
-          }
-
-          .post-social-content {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-
-          .post-social-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .post-pill-platform {
-            padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            background: rgba(0, 0, 0, 0.3);
-          }
-
-          .post-social-sub {
-            font-size: 12px;
-            opacity: 0.9;
-          }
-
-          .post-social-main p {
-            margin: 0 0 10px;
-            font-size: 13px;
-          }
-
-          .post-social-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 16px;
-            border-radius: 999px;
-            background: rgba(2, 3, 24, 0.96);
-            color: #fef7dd;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
-          }
-
-          @media (max-width: 720px) {
-            .post-root {
-              padding-bottom: 100px;
-            }
-
-            .post-header-card,
-            .post-body-card,
-            .post-social-card {
-              padding: 14px 14px 16px;
-            }
-
-            .post-title {
-              font-size: 20px;
-            }
-
-            .post-social-inner {
-              flex-direction: column;
-            }
-
-            .post-social-thumb {
-              width: 100%;
-              height: 180px;
-            }
-          }
-        `}</style>
-      </div>
-    </Layout>
+        }
+      `}</style>
+    </div>
   );
 }

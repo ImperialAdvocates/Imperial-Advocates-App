@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Layout from '../layout';
 import { supabase } from '../../lib/supabaseClient';
 import { useProfile } from '../../hooks/useProfile';
 
@@ -19,27 +18,27 @@ export default function AdminCoursesPage() {
 
   const [expandedCourseId, setExpandedCourseId] = useState(null);
 
-  // Lessons state: per-course
+  // Lessons state
   const [lessonsByCourse, setLessonsByCourse] = useState({}); // courseId -> lesson[]
   const [lessonsLoading, setLessonsLoading] = useState({}); // courseId -> bool
   const [lessonForm, setLessonForm] = useState({}); // courseId -> { title, video_url, notes }
 
-  // Course editing state
+  // Course editing
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [courseEditForm, setCourseEditForm] = useState({}); // courseId -> { title, description }
   const [savingCourseId, setSavingCourseId] = useState(null);
 
-  // Reorder loading per course
+  // Reorder loading
   const [reorderLoading, setReorderLoading] = useState({}); // courseId -> bool
 
-  // Lesson editing state
+  // Lesson editing
   const [editingLessonId, setEditingLessonId] = useState(null);
   const [lessonEditForm, setLessonEditForm] = useState({}); // lessonId -> { title, video_url, notes }
   const [savingLessonId, setSavingLessonId] = useState(null);
 
-  // ─────────────────────────────────────────────────────
-  // Guard: only admins allowed
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Guard: only admins
+  // ─────────────────────────────────────────────
   useEffect(() => {
     if (profileLoading) return;
     if (profile && !isAdmin) {
@@ -47,9 +46,9 @@ export default function AdminCoursesPage() {
     }
   }, [profile, isAdmin, profileLoading, router]);
 
-  // ─────────────────────────────────────────────────────
-  // Load all courses for admin
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Load courses
+  // ─────────────────────────────────────────────
   useEffect(() => {
     async function loadCourses() {
       try {
@@ -81,9 +80,9 @@ export default function AdminCoursesPage() {
     }
   }, [profileLoading, isAdmin]);
 
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
   // Create course
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
   async function handleCreateCourse(e) {
     e.preventDefault();
     if (!newTitle.trim()) {
@@ -122,9 +121,9 @@ export default function AdminCoursesPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
   // Delete course
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
   async function handleDeleteCourse(courseId) {
     if (!window.confirm('Delete this course and all its lessons?')) return;
 
@@ -153,9 +152,9 @@ export default function AdminCoursesPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────
-  // Edit course (start / update form / save / cancel)
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Edit course
+  // ─────────────────────────────────────────────
   function startEditCourse(course) {
     setEditingCourseId(course.id);
     setCourseEditForm((prev) => ({
@@ -225,9 +224,9 @@ export default function AdminCoursesPage() {
     });
   }
 
-  // ─────────────────────────────────────────────────────
-  // Load lessons for a course
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Load lessons for course
+  // ─────────────────────────────────────────────
   async function loadLessonsForCourse(courseId) {
     try {
       setLessonsLoading((prev) => ({ ...prev, [courseId]: true }));
@@ -269,9 +268,9 @@ export default function AdminCoursesPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
   // Create lesson
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
   async function handleCreateLesson(courseId) {
     const form = lessonForm[courseId] || {
       title: '',
@@ -330,9 +329,9 @@ export default function AdminCoursesPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────
-  // Delete lesson (with progress cleanup)
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Delete lesson
+  // ─────────────────────────────────────────────
   async function handleDeleteLesson(courseId, lessonId) {
     if (!window.confirm('Delete this lesson?')) return;
 
@@ -369,9 +368,9 @@ export default function AdminCoursesPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────
-  // Reorder lesson: move up / move down
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Reorder lesson
+  // ─────────────────────────────────────────────
   async function handleMoveLesson(courseId, lessonId, direction) {
     const list = lessonsByCourse[courseId] || [];
     if (list.length < 2) return;
@@ -443,9 +442,9 @@ export default function AdminCoursesPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────
-  // Lesson editing (start / update form / save / cancel)
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Lesson editing
+  // ─────────────────────────────────────────────
   function startEditLesson(lesson) {
     setEditingLessonId(lesson.id);
     setLessonEditForm((prev) => ({
@@ -525,9 +524,9 @@ export default function AdminCoursesPage() {
     });
   }
 
-  // ─────────────────────────────────────────────────────
-  // Helper to update lesson creation form values
-  // ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Lesson create form helper
+  // ─────────────────────────────────────────────
   function updateLessonForm(courseId, field, value) {
     setLessonForm((prev) => ({
       ...prev,
@@ -542,27 +541,71 @@ export default function AdminCoursesPage() {
     }));
   }
 
-  // ─────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────
-  return (
-    <Layout>
-      <div className="admin-courses-root">
-        <div className="admin-header-row">
-          <h1 className="admin-title">Admin – Courses &amp; Lessons</h1>
-          <Link href="/admin" className="back-link">
-            ← Back to Admin home
-          </Link>
+  const displayName =
+    (profile?.first_name && profile.first_name.trim()) ||
+    (profile?.username && profile.username.trim()) ||
+    (profile?.email ? profile.email.split('@')[0] : 'admin');
+
+  // ─────────────────────────────────────────────
+  // RENDER – shell + content
+  // ─────────────────────────────────────────────
+  if (profileLoading) {
+    return (
+      <div className="admin-screen">
+        <div className="admin-inner">
+          <section className="admin-header-card">
+            <p className="admin-eyebrow">ADMIN</p>
+            <h1 className="admin-title">Checking permissions…</h1>
+            <p className="admin-sub">Please wait a moment.</p>
+          </section>
         </div>
+        <style jsx>{styles}</style>
+      </div>
+    );
+  }
 
-        <p className="admin-subtitle">
-          Create, edit and organise courses and lessons. These changes update what
-          investors see on the training portal.
-        </p>
+  if (!isAdmin) {
+    return (
+      <div className="admin-screen">
+        <div className="admin-inner">
+          <section className="admin-header-card">
+            <p className="admin-eyebrow">ADMIN</p>
+            <h1 className="admin-title">No access</h1>
+            <p className="admin-sub">
+              You don&apos;t have access to this page.
+            </p>
+            <Link href="/dashboard" className="admin-link">
+              ← Back to dashboard
+            </Link>
+          </section>
+        </div>
+        <style jsx>{styles}</style>
+      </div>
+    );
+  }
 
-        {/* Add new course */}
-        <section className="card add-course-card">
-          <h2 className="card-title">Add new course</h2>
+  return (
+    <div className="admin-screen">
+      <div className="admin-inner">
+        {/* HEADER */}
+        <section className="admin-header-card">
+          <p className="admin-eyebrow">ADMIN • COURSES</p>
+          <h1 className="admin-title">Courses &amp; lessons</h1>
+          <p className="admin-sub">
+            Create, edit and organise training programs. Changes here update
+            what investors see in their portal.
+          </p>
+          <p className="admin-sub small">
+            Logged in as <strong>{displayName}</strong>.{' '}
+            <Link href="/admin" className="admin-link-inline">
+              ← Back to admin home
+            </Link>
+          </p>
+        </section>
+
+        {/* ADD COURSE */}
+        <section className="admin-card">
+          <h2 className="admin-card-title">Add new course</h2>
 
           <form onSubmit={handleCreateCourse} className="form-vertical">
             <label className="field-label">Course title</label>
@@ -580,7 +623,7 @@ export default function AdminCoursesPage() {
               className="field-textarea"
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="Short description for this course..."
+              placeholder="Short description for this course…"
               rows={3}
             />
 
@@ -594,9 +637,9 @@ export default function AdminCoursesPage() {
           </form>
         </section>
 
-        {/* Existing courses */}
-        <section className="courses-list-section">
-          <h2 className="section-heading">Your courses</h2>
+        {/* COURSES LIST */}
+        <section className="admin-card">
+          <h2 className="admin-card-title">Your courses</h2>
 
           {loadingCourses ? (
             <p className="muted">Loading courses…</p>
@@ -627,7 +670,7 @@ export default function AdminCoursesPage() {
                 };
 
                 return (
-                  <div key={course.id} className="card course-card">
+                  <div key={course.id} className="course-card">
                     <div className="course-header">
                       <div>
                         <div className="course-tag">COURSE</div>
@@ -656,7 +699,7 @@ export default function AdminCoursesPage() {
                                   e.target.value
                                 )
                               }
-                              placeholder="Short description..."
+                              placeholder="Short description…"
                               rows={2}
                               style={{ marginTop: 6 }}
                             />
@@ -686,7 +729,7 @@ export default function AdminCoursesPage() {
                             </button>
                             <button
                               type="button"
-                              className="ghost-btn small danger"
+                              className="ghost-btn small danger-text"
                               onClick={() =>
                                 handleCancelEditCourse(course.id)
                               }
@@ -712,7 +755,7 @@ export default function AdminCoursesPage() {
                             </Link>
                             <button
                               type="button"
-                              className="ghost-btn small danger"
+                              className="ghost-btn small danger-text"
                               onClick={() =>
                                 handleDeleteCourse(course.id)
                               }
@@ -724,17 +767,18 @@ export default function AdminCoursesPage() {
                       </div>
                     </div>
 
-                    {/* LESSON MANAGEMENT */}
+                    {/* LESSON MANAGEMENT TOGGLE */}
                     <div className="course-lessons-row">
                       <button
                         type="button"
-                        className="ghost-btn small"
+                        className="ghost-btn xsmall"
                         onClick={() => toggleManageLessons(course.id)}
                       >
                         {isExpanded ? 'Hide lessons' : 'Manage lessons'}
                       </button>
                     </div>
 
+                    {/* LESSONS PANEL */}
                     {isExpanded && (
                       <div className="lessons-panel">
                         <h4 className="lessons-heading">Lessons</h4>
@@ -831,10 +875,12 @@ export default function AdminCoursesPage() {
                                         </div>
                                         {lesson.video_url && (
                                           <div className="lesson-sub">
-                                            Video URL:{' '}
-                                            <span className="muted">
-                                              {lesson.video_url}
+                                            <span className="lesson-sub-label">
+                                              Video URL
                                             </span>
+                                            <div className="muted">
+                                              {lesson.video_url}
+                                            </div>
                                           </div>
                                         )}
                                         {lesson.notes && (
@@ -876,7 +922,7 @@ export default function AdminCoursesPage() {
                                         </button>
                                         <button
                                           type="button"
-                                          className="ghost-btn xsmall danger"
+                                          className="ghost-btn xsmall danger-text"
                                           onClick={() =>
                                             handleCancelEditLesson(
                                               lesson.id
@@ -940,7 +986,7 @@ export default function AdminCoursesPage() {
                                         </Link>
                                         <button
                                           type="button"
-                                          className="ghost-btn xsmall danger"
+                                          className="ghost-btn xsmall danger-text"
                                           onClick={() =>
                                             handleDeleteLesson(
                                               course.id,
@@ -960,7 +1006,7 @@ export default function AdminCoursesPage() {
                           </ul>
                         )}
 
-                        {/* Add new lesson form */}
+                        {/* ADD LESSON */}
                         <div className="add-lesson-card">
                           <h5 className="lessons-subheading">
                             Add new lesson
@@ -1036,322 +1082,389 @@ export default function AdminCoursesPage() {
           )}
         </section>
 
-        <style jsx>{`
-          .admin-courses-root {
-            max-width: 1080px;
-            margin: 0 auto;
-            padding: 24px 16px 80px;
-          }
-
-          .admin-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-          }
-
-          .admin-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin: 0;
-          }
-
-          .back-link {
-            font-size: 13px;
-            opacity: 0.9;
-            text-decoration: none;
-          }
-
-          .admin-subtitle {
-            margin: 8px 0 20px;
-            font-size: 13px;
-            opacity: 0.85;
-          }
-
-          .card {
-            border-radius: 20px;
-            background: radial-gradient(
-              circle at top left,
-              #0d123d 0%,
-              #020319 70%
-            );
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85);
-            padding: 18px 20px 20px;
-          }
-
-          .add-course-card {
-            margin-bottom: 24px;
-          }
-
-          .card-title {
-            margin: 0 0 12px;
-            font-size: 16px;
-            font-weight: 600;
-          }
-
-          .form-vertical {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-          }
-
-          .field-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.16em;
-            opacity: 0.8;
-          }
-
-          .muted {
-            opacity: 0.75;
-            font-size: 13px;
-          }
-
-          .field-input,
-          .field-textarea {
-            width: 100%;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(1, 3, 24, 0.9);
-            padding: 10px 12px;
-            font-size: 14px;
-            color: #ffffff;
-            resize: vertical;
-          }
-
-          .field-input:focus,
-          .field-textarea:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.4);
-          }
-
-          .primary-btn {
-            border: none;
-            border-radius: 999px;
-            padding: 10px 18px;
-            background: linear-gradient(90deg, #ff8050, #8345ff);
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
-          }
-
-          .primary-btn[disabled] {
-            opacity: 0.6;
-            cursor: default;
-          }
-
-          .full {
-            width: 100%;
-            margin-top: 8px;
-          }
-
-          .courses-list-section {
-            margin-top: 12px;
-          }
-
-          .section-heading {
-            font-size: 16px;
-            margin-bottom: 10px;
-          }
-
-          .courses-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-          }
-
-          .course-card {
-            padding-bottom: 16px;
-          }
-
-          .course-header {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-          }
-
-          .course-tag {
-            display: inline-flex;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            background: rgba(0, 0, 0, 0.35);
-            opacity: 0.9;
-            margin-bottom: 6px;
-          }
-
-          .course-title {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-          }
-
-          .course-description {
-            margin: 4px 0 0;
-            font-size: 13px;
-            opacity: 0.9;
-          }
-
-          .course-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
-          }
-
-          .ghost-btn {
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: transparent;
-            color: #fff;
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            text-decoration: none;
-          }
-
-          .ghost-btn.small {
-            padding: 6px 10px;
-            font-size: 12px;
-          }
-
-          .ghost-btn.xsmall {
-            padding: 4px 8px;
-            font-size: 11px;
-          }
-
-          .ghost-btn.danger {
-            border-color: rgba(255, 80, 80, 0.8);
-            color: #ff8080;
-          }
-
-          .course-lessons-row {
-            margin-top: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          }
-
-          .lessons-panel {
-            margin-top: 12px;
-            border-radius: 14px;
-            padding: 12px 14px 14px;
-            background: rgba(3, 6, 40, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-          }
-
-          .lessons-heading {
-            margin: 0 0 6px;
-            font-size: 14px;
-            font-weight: 600;
-          }
-
-          .lessons-subheading {
-            margin: 0 0 6px;
-            font-size: 13px;
-            font-weight: 600;
-          }
-
-          .lessons-list {
-            list-style: none;
-            padding: 0;
-            margin: 6px 0 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-
-          .lesson-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 8px 10px;
-            border-radius: 10px;
-            background: rgba(2, 3, 30, 0.9);
-          }
-
-          .lesson-title-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-          }
-
-          .lesson-index {
-            display: inline-flex;
-            width: 18px;
-            height: 18px;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
-            font-size: 11px;
-            opacity: 0.9;
-          }
-
-          .lesson-title {
-            font-size: 13px;
-            font-weight: 500;
-          }
-
-          .lesson-sub {
-            margin-top: 4px;
-            font-size: 11px;
-          }
-
-          .lesson-sub-label {
-            display: inline-block;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            opacity: 0.7;
-            margin-bottom: 2px;
-          }
-
-          .lesson-actions {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-          }
-
-          .add-lesson-card {
-            margin-top: 10px;
-            border-radius: 12px;
-            padding: 10px 12px 12px;
-            background: rgba(1, 3, 22, 0.9);
-          }
-
-          @media (max-width: 720px) {
-            .admin-header-row {
-              flex-direction: column;
-              align-items: flex-start;
-            }
-            .course-header {
-              flex-direction: column;
-              align-items: flex-start;
-            }
-            .course-actions {
-              flex-direction: row;
-              align-items: center;
-              flex-wrap: wrap;
-              gap: 6px;
-            }
-            .lesson-item {
-              flex-direction: column;
-              align-items: flex-start;
-            }
-            .lesson-actions {
-              justify-content: flex-start;
-            }
-          }
-        `}</style>
+        <div className="admin-bottom-safe" />
       </div>
-    </Layout>
+
+      <style jsx>{styles}</style>
+    </div>
   );
 }
+
+const styles = `
+  /* Shell – same as admin index / noticeboard */
+  .admin-screen {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 24px;
+  }
+
+  .admin-inner {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* HEADER CARD */
+  .admin-header-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-eyebrow {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #9ca3af;
+  }
+
+  .admin-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .admin-sub {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .admin-sub.small {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .admin-link,
+  .admin-link-inline {
+    font-size: 12px;
+    color: #4f46e5;
+    text-decoration: none;
+  }
+
+  .admin-link:hover,
+  .admin-link-inline:hover {
+    text-decoration: underline;
+  }
+
+  /* MAIN CARDS */
+  .admin-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .admin-card-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  /* FORM BASIC */
+  .form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #6b7280;
+  }
+
+  .muted {
+    opacity: 0.7;
+    font-size: 12px;
+  }
+
+  .field-input,
+  .field-textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #111827;
+    outline: none;
+  }
+
+  .field-textarea {
+    resize: vertical;
+  }
+
+  .field-input:focus,
+  .field-textarea:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.12);
+    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+  }
+
+  .primary-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    color: #ffffff;
+    box-shadow: 0 12px 28px rgba(249, 115, 22, 0.25);
+    white-space: nowrap;
+  }
+
+  .primary-btn[disabled] {
+    opacity: 0.85;
+    cursor: default;
+    box-shadow: none;
+  }
+
+  .full {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  /* COURSES LIST */
+  .courses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .course-card {
+    border-radius: 16px;
+    padding: 12px 12px 14px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .course-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .course-tag {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: #e5e7eb;
+    color: #4b5563;
+    margin-bottom: 4px;
+  }
+
+  .course-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .course-description {
+    margin: 3px 0 0;
+    font-size: 13px;
+    color: #4b5563;
+  }
+
+  .course-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .ghost-btn {
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .ghost-btn.small {
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  .ghost-btn.xsmall {
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+
+  .ghost-btn.danger-text,
+  .danger-text {
+    color: #b91c1c;
+    border-color: #fecaca;
+  }
+
+  .ghost-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  .course-lessons-row {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  /* LESSONS PANEL */
+  .lessons-panel {
+    margin-top: 6px;
+    border-radius: 14px;
+    padding: 10px 10px 12px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+  }
+
+  .lessons-heading {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .lessons-subheading {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .lessons-list {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .lesson-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 9px;
+    border-radius: 10px;
+    background: #f3f4f6;
+  }
+
+  .lesson-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .lesson-index {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #e5e7eb;
+    font-size: 11px;
+    color: #4b5563;
+  }
+
+  .lesson-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+  }
+
+  .lesson-sub {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #4b5563;
+  }
+
+  .lesson-sub-label {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6b7280;
+    margin-bottom: 1px;
+  }
+
+  .lesson-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+
+  .add-lesson-card {
+    margin-top: 8px;
+    border-radius: 12px;
+    padding: 9px 10px 11px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+  }
+
+  .admin-bottom-safe {
+    height: 60px;
+  }
+
+  @media (max-width: 720px) {
+    .admin-screen {
+      padding: 10px 12px 80px;
+    }
+
+    .admin-card {
+      padding: 12px 12px 14px;
+    }
+
+    .course-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .course-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .lesson-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .lesson-actions {
+      justify-content: flex-start;
+    }
+
+    .admin-bottom-safe {
+      height: 80px;
+    }
+  }
+`;

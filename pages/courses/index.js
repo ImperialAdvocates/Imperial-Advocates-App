@@ -9,6 +9,7 @@ export default function CoursesIndexPage() {
 
   const [courses, setCourses] = useState([]);
   const [courseStats, setCourseStats] = useState([]);
+  const [resumeLesson, setResumeLesson] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Load courses + lessons + progress
@@ -40,10 +41,10 @@ export default function CoursesIndexPage() {
 
         setCourses(coursesData || []);
 
-        // 3) All lessons
+        // 3) All lessons (include title + lesson_index so we can resume)
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
-          .select('id, course_id')
+          .select('id, course_id, title, lesson_index')
           .order('lesson_index', { ascending: true });
 
         if (lessonsError) {
@@ -65,8 +66,9 @@ export default function CoursesIndexPage() {
           }
         }
 
-        // 5) Build stats per course
+        // 5) Build stats per course + find best "resume" lesson
         const stats = [];
+        let bestResume = null;
 
         (coursesData || []).forEach((course) => {
           const courseLessons =
@@ -82,9 +84,41 @@ export default function CoursesIndexPage() {
             totalLessons: total,
             completedLessons: completedCount,
           });
+
+          if (total > 0) {
+            const completedLessonIds = new Set(
+              completedForCourse.map((p) => p.lesson_id)
+            );
+
+            const firstIncomplete = courseLessons.find(
+              (l) => !completedLessonIds.has(l.id)
+            );
+
+            const candidateLesson = firstIncomplete || courseLessons.at(-1);
+            const completionRatio = total === 0 ? 0 : completedCount / total;
+
+            if (!bestResume || completionRatio < bestResume.completionRatio) {
+              bestResume = {
+                completionRatio,
+                course,
+                lesson: candidateLesson,
+              };
+            }
+          }
         });
 
         setCourseStats(stats);
+
+        if (bestResume && bestResume.course && bestResume.lesson) {
+          setResumeLesson({
+            courseId: bestResume.course.id,
+            courseTitle: bestResume.course.title,
+            lessonId: bestResume.lesson.id,
+            lessonTitle: bestResume.lesson.title,
+          });
+        } else {
+          setResumeLesson(null);
+        }
       } catch (err) {
         console.error('Unexpected courses error:', err);
       } finally {
@@ -109,243 +143,442 @@ export default function CoursesIndexPage() {
     (profile?.username && profile.username.trim()) ||
     (profile?.email ? profile.email.split('@')[0] : 'Investor');
 
+  const totalLabel =
+    courses.length === 0
+      ? 'No programs yet'
+      : courses.length === 1
+      ? '1 program'
+      : `${courses.length} programs`;
+
   return (
-    <div className="courses-root">
-      {/* HERO HEADER */}
-      <header className="courses-hero">
-        <div className="hero-left">
-          <div className="hero-kicker">TRAINING • YOUR LIBRARY</div>
-          <h1 className="hero-title">Courses & Programs</h1>
-          <p className="hero-sub">
-            {displayName
-              ? `Keep building your knowledge, ${displayName}.`
-              : 'Keep building your knowledge.'}{' '}
-            Work through each module at your own pace and come back any time.
-          </p>
-        </div>
-      </header>
+    <div className="courses-page">
+      <div className="courses-inner">
+        {/* HERO / HEADER */}
+        <header className="courses-hero">
+          <div className="hero-top-row">
+            <div className="hero-title-block">
+              <p className="hero-eyebrow">TRAINING</p>
+              <h1 className="hero-title">Courses</h1>
+              <p className="hero-sub">
+                {displayName
+                  ? `Keep building your knowledge, ${displayName}.`
+                  : 'Keep building your knowledge.'}{' '}
+                Work through each module at your own pace and come back any
+                time.
+              </p>
+            </div>
 
-      {/* COURSE GRID */}
-      <section className="courses-section">
-        <div className="courses-header-row">
-          <h2 className="section-title">All courses</h2>
-          {/* (optional filters can go here later) */}
-        </div>
-
-        {loading && courses.length === 0 ? (
-          <p className="courses-empty">Loading courses…</p>
-        ) : courses.length === 0 ? (
-          <p className="courses-empty">
-            No courses are available yet. Once your first program is published,
-            it will appear here.
-          </p>
-        ) : (
-          <div className="courses-grid">
-            {courses.map((course) => {
-              const stats = getStatsForCourse(course.id);
-              const { totalLessons, completedLessons } = stats;
-              const pct =
-                totalLessons === 0
-                  ? 0
-                  : Math.round((completedLessons / totalLessons) * 100);
-
-              return (
-                <Link
-                  key={course.id}
-                  href={`/courses/${course.id}`}
-                  className="course-card"
-                >
-                  <div className="course-tag">CORE</div>
-                  <h3 className="course-title">{course.title}</h3>
-                  <p className="course-subtitle">
-                    {course.description ||
-                      'Training designed for Imperial Advocates investors.'}
-                  </p>
-
-                  <div className="course-progress-row">
-                    <span className="course-progress-label">
-                      {completedLessons}/{totalLessons} lessons
-                    </span>
-                    <span className="course-progress-pct">{pct}%</span>
-                  </div>
-
-                  <div className="course-progress-bar">
-                    <div
-                      className="course-progress-fill"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-
-                  <div className="course-cta">Open course →</div>
-                </Link>
-              );
-            })}
+            <div className="hero-meta">
+              <div className="hero-pill">
+                <span className="hero-pill-dot" />
+                <span>{totalLabel}</span>
+              </div>
+            </div>
           </div>
+        </header>
+
+        {/* CONTINUE LEARNING – same vibe as dashboard */}
+        {resumeLesson && (
+          <section className="courses-continue">
+            <div className="continue-card">
+              <div>
+                <p className="continue-kicker">Continue learning</p>
+                <p className="continue-title">{resumeLesson.courseTitle}</p>
+                <p className="continue-sub">
+                  Lesson – {resumeLesson.lessonTitle}
+                </p>
+              </div>
+              <Link
+                href={`/courses/${resumeLesson.courseId}/${resumeLesson.lessonId}`}
+                className="continue-btn"
+              >
+                Resume →
+              </Link>
+            </div>
+          </section>
         )}
-      </section>
+
+        {/* BODY: course list */}
+        <section className="courses-section">
+          <div className="courses-header-row">
+            <h2 className="section-heading">Your learning</h2>
+          </div>
+
+          {loading && courses.length === 0 ? (
+            <p className="courses-empty">Loading courses…</p>
+          ) : courses.length === 0 ? (
+            <p className="courses-empty">
+              No courses are available yet. Once your first program is published,
+              it will appear here.
+            </p>
+          ) : (
+            <div className="courses-grid">
+              {courses.map((course) => {
+                const stats = getStatsForCourse(course.id);
+                const { totalLessons, completedLessons } = stats;
+                const pct =
+                  totalLessons === 0
+                    ? 0
+                    : Math.round((completedLessons / totalLessons) * 100);
+
+                return (
+                  <Link
+                    key={course.id}
+                    href={`/courses/${course.id}`}
+                    className="course-card"
+                  >
+                    <div className="course-card-top">
+                      <div className="course-icon">
+                        <span className="course-icon-glyph">📘</span>
+                      </div>
+                      <div className="course-text">
+                        <h3 className="course-title">{course.title}</h3>
+                        <p className="course-subtitle">
+                          {course.description ||
+                            'Training designed for Imperial Advocates investors.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="course-meta-row">
+                      <span className="course-lessons">
+                        {completedLessons}/{totalLessons} lessons
+                      </span>
+                      <span className="course-pct">{pct}%</span>
+                    </div>
+
+                    <div className="course-progress-bar">
+                      <div
+                        className="course-progress-fill"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+
+                    <div className="course-cta">Open course →</div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* space so bottom nav doesn’t cover content on mobile */}
+        <div className="courses-bottom-safe" />
+      </div>
 
       <style jsx>{`
-        .courses-root {
-          max-width: 1040px;
-          margin: 0 auto;
-          padding: 16px 16px 80px;
+        /* Match dashboard + noticeboard shell */
+        .courses-page {
+          width: 100%;
           display: flex;
-          flex-direction: column;
-          gap: 18px;
+          justify-content: center;
         }
 
+        .courses-inner {
+          width: 100%;
+          max-width: 520px; /* same as dash-inner */
+          padding: 12px 16px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        /* HERO CARD */
         .courses-hero {
-  border-radius: 22px;
-  padding: 18px 20px 20px;
-
-  /* IA Master Gradient */
-  background: linear-gradient(90deg, #f4a261, #e76f51, #1b1f6b);
-
-  box-shadow: 0 22px 55px rgba(0,0,0,0.85);
-  overflow: hidden;
-}
-
-        .hero-left {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+          border-radius: 20px;
+          padding: 14px 14px 16px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
         }
 
-        .hero-kicker {
+        .hero-top-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .hero-title-block {
+          max-width: 560px;
+        }
+
+        .hero-eyebrow {
+          margin: 0 0 4px;
           font-size: 11px;
-          letter-spacing: 0.18em;
           text-transform: uppercase;
-          opacity: 0.8;
+          letter-spacing: 0.18em;
+          color: #9ca3af;
         }
 
         .hero-title {
-          margin: 0;
+          margin: 0 0 6px;
           font-size: 22px;
-          font-weight: 600;
+          font-weight: 700;
+          color: #111827;
         }
 
         .hero-sub {
-          margin: 4px 0 0;
+          margin: 0;
           font-size: 13px;
-          opacity: 0.9;
-          max-width: 600px;
+          line-height: 1.45;
+          color: #4b5563;
         }
 
+        .hero-meta {
+          flex-shrink: 0;
+          display: flex;
+          align-items: flex-start;
+          justify-content: flex-end;
+        }
+
+        .hero-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 999px;
+          background: #eef2ff;
+          color: #4b5563;
+          font-size: 11px;
+          font-weight: 500;
+        }
+
+        .hero-pill-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 999px;
+          background: #4f46e5;
+        }
+
+        /* CONTINUE CARD (blue gradient, like dashboard’s updated one) */
+        .courses-continue {
+          margin-top: 0;
+        }
+
+        .continue-card {
+          padding: 16px 18px;
+          border-radius: 26px;
+          background: linear-gradient(135deg, #1d2cff, #0a0f4f);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .continue-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(
+            circle at top left,
+            rgba(255, 255, 255, 0.18),
+            transparent 60%
+          );
+          pointer-events: none;
+        }
+
+        .continue-card > div {
+          position: relative;
+          z-index: 1;
+        }
+
+        .continue-kicker {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          opacity: 0.9;
+          margin-bottom: 4px;
+        }
+
+        .continue-title {
+          font-size: 15px;
+          font-weight: 600;
+          margin: 0 0 2px;
+        }
+
+        .continue-sub {
+          font-size: 13px;
+          opacity: 0.95;
+          margin: 0;
+        }
+
+        .continue-btn {
+          position: relative;
+          z-index: 1;
+          border-radius: 999px;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.18);
+          border: none;
+          font-size: 13px;
+          font-weight: 600;
+          color: #ffffff;
+          text-decoration: none;
+          backdrop-filter: blur(8px);
+          white-space: nowrap;
+        }
+
+        /* COURSES SECTION CARD */
         .courses-section {
-          border-radius: 20px;
-          padding: 16px 20px 18px;
-          background: rgba(3, 6, 40, 0.98);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+          border-radius: 22px;
+          padding: 14px 14px 16px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 20px 55px rgba(15, 23, 42, 0.22);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
         }
 
         .courses-header-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 10px;
+          gap: 8px;
         }
 
-        .section-title {
+        .section-heading {
           margin: 0;
           font-size: 16px;
+          font-weight: 600;
+          color: #111827;
         }
 
         .courses-empty {
-          margin: 0;
+          margin: 4px 0 0;
           font-size: 13px;
-          opacity: 0.85;
+          color: #6b7280;
         }
 
+        /* GRID + CARDS */
         .courses-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-          gap: 14px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
         }
 
         .course-card {
           text-decoration: none;
-          color: #ffffff;
-          padding: 14px 14px 16px;
-          border-radius: 16px;
-          background: radial-gradient(
-            circle at top left,
-            #1d2a8c 0%,
-            #050a3a 70%
-          );
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
+          padding: 12px 12px 14px;
+          border-radius: 18px;
+          background: linear-gradient(145deg, #ffffff, #eef2ff);
+          box-shadow:
+            0 14px 36px rgba(15, 23, 42, 0.2),
+            0 0 0 1px rgba(209, 213, 219, 0.7);
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
+          color: #0f172a;
           transition: transform 0.08s ease-out, box-shadow 0.12s ease-out;
         }
 
         .course-card:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 22px 56px rgba(0, 0, 0, 0.95);
+          transform: translateY(-2px);
+          box-shadow:
+            0 18px 50px rgba(15, 23, 42, 0.28),
+            0 0 0 1px rgba(129, 140, 248, 0.9);
         }
 
-        .course-tag {
-          display: inline-flex;
-          padding: 4px 10px;
-          border-radius: 999px;
-          font-size: 10px;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          background: rgba(0, 0, 0, 0.35);
-          opacity: 0.9;
-          align-self: flex-start;
+        .course-card-top {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .course-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 14px;
+          background: radial-gradient(circle at top left, #e0e7ff, #1d2cff);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .course-icon-glyph {
+          font-size: 20px;
+        }
+
+        .course-text {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
         }
 
         .course-title {
           margin: 0;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
+          color: #111827;
         }
 
         .course-subtitle {
           margin: 0;
           font-size: 12px;
-          opacity: 0.9;
+          line-height: 1.4;
+          color: #6b7280;
         }
 
-        .course-progress-row {
-          margin-top: 4px;
+        .course-meta-row {
           display: flex;
           justify-content: space-between;
+          align-items: baseline;
           font-size: 11px;
-          opacity: 0.9;
+          color: #6b7280;
+        }
+
+        .course-pct {
+          font-weight: 600;
+          color: #4f46e5;
         }
 
         .course-progress-bar {
-          margin-top: 4px;
+          margin-top: 2px;
           height: 6px;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.12);
+          background: #e5e7eb;
           overflow: hidden;
         }
 
         .course-progress-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #f8b45a, #ff8b5f);
+          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
         }
 
         .course-cta {
-          margin-top: 8px;
-          font-size: 12px;
-          opacity: 0.95;
+          margin-top: 6px;
+          font-size: 11px;
+          font-weight: 500;
+          color: #4b5563;
+        }
+
+        .courses-bottom-safe {
+          height: 72px;
         }
 
         @media (max-width: 720px) {
-          .courses-root {
-            padding-bottom: 110px; /* room for bottom nav */
+          .courses-inner {
+            padding: 10px 12px 12px;
           }
 
-          .courses-hero,
-          .courses-section {
-            padding: 14px 14px 16px;
+          .hero-top-row {
+            flex-direction: column;
+          }
+
+          .hero-meta {
+            justify-content: flex-start;
+          }
+
+          .courses-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .courses-bottom-safe {
+            height: 80px;
           }
         }
       `}</style>

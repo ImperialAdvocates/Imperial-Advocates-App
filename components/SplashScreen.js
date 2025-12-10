@@ -6,7 +6,6 @@ export default function SplashScreen() {
     <div className="ia-splash-root">
       <div className="ia-splash-content">
         <div className="ia-splash-logo-wrap">
-          <div className="ia-splash-logo-glow" />
           <Image
             src="/ia-logo.png"
             alt="Imperial Advocates"
@@ -18,7 +17,7 @@ export default function SplashScreen() {
         </div>
 
         <div className="ia-splash-text-block">
-          <h1>Imperial Advocates</h1>
+          <h1>IMPERIAL ADVOCATES</h1>
           <p>Investor Training &amp; Client Portal</p>
         </div>
 
@@ -34,12 +33,7 @@ export default function SplashScreen() {
           position: fixed;
           inset: 0;
           z-index: 9999;
-          background: radial-gradient(
-              circle at top,
-              #1d2cff 0,
-              #050a40 40%,
-              #03051f 100%
-            );
+          background: #f5f7fb;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -50,56 +44,47 @@ export default function SplashScreen() {
 
         .ia-splash-content {
           width: 100%;
-          max-width: 380px;
+          max-width: 420px;
+          background: #ffffff;
+          border-radius: 24px;
+          padding: 28px 24px 24px;
+          box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
           display: flex;
           flex-direction: column;
           align-items: center;
           text-align: center;
-          color: #ffffff;
-          animation: iaFadeIn 0.6s ease-out forwards;
+          color: #111827;
+          animation: iaFadeIn 0.5s ease-out forwards;
         }
 
         .ia-splash-logo-wrap {
-          position: relative;
-          margin-bottom: 20px;
-        }
-
-        .ia-splash-logo-glow {
-          position: absolute;
-          inset: -24px;
-          border-radius: 32px;
-          background: radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.16),
-            transparent 70%
-          );
-          filter: blur(4px);
-          opacity: 0.7;
-          pointer-events: none;
+          margin-bottom: 16px;
         }
 
         .ia-splash-logo {
           border-radius: 18px;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
         }
 
         .ia-splash-text-block h1 {
           margin: 0;
-          font-size: 24px;
-          letter-spacing: 0.08em;
+          font-size: 16px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
+          color: #151827;
         }
 
         .ia-splash-text-block p {
-          margin: 8px 0 0;
+          margin: 6px 0 0;
           font-size: 13px;
-          opacity: 0.82;
+          color: #6b7280;
         }
 
         .ia-splash-loader {
-          margin-top: 26px;
+          margin-top: 18px;
           display: flex;
-          gap: 8px;
+          gap: 6px;
           justify-content: center;
         }
 
@@ -107,13 +92,15 @@ export default function SplashScreen() {
           width: 7px;
           height: 7px;
           border-radius: 999px;
-          background: #f6e7b8;
+          background: radial-gradient(circle at top left, #e0e7ff, #1d2cff);
           opacity: 0.4;
           animation: iaPulse 1.2s ease-in-out infinite;
         }
+
         .ia-splash-dot:nth-child(2) {
           animation-delay: 0.18s;
         }
+
         .ia-splash-dot:nth-child(3) {
           animation-delay: 0.36s;
         }
@@ -121,7 +108,7 @@ export default function SplashScreen() {
         @keyframes iaFadeIn {
           from {
             opacity: 0;
-            transform: translateY(12px);
+            transform: translateY(10px);
           }
           to {
             opacity: 1;
@@ -144,12 +131,9 @@ export default function SplashScreen() {
           }
         }
 
-        @media (min-width: 768px) {
+        @media (max-width: 480px) {
           .ia-splash-content {
-            max-width: 420px;
-          }
-          .ia-splash-text-block h1 {
-            font-size: 26px;
+            padding: 24px 18px 20px;
           }
         }
       `}</style>

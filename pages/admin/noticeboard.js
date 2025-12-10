@@ -1,7 +1,6 @@
 // pages/admin/noticeboard.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../layout';
 import { supabase } from '../../lib/supabaseClient';
 import { useProfile } from '../../hooks/useProfile';
 
@@ -14,8 +13,8 @@ export default function AdminNoticeboard() {
   const [body, setBody] = useState('');
   const [isPinned, setIsPinned] = useState(false);
 
-  // IG / FB helper fields (also drive social_platform/social_url)
-  const [igPlatform, setIgPlatform] = useState('instagram'); // 'instagram' | 'facebook' | etc.
+  // Social helper fields (generic)
+  const [igPlatform, setIgPlatform] = useState('instagram'); // 'instagram' | 'facebook'
   const [igUrl, setIgUrl] = useState('');
   const [igThumb, setIgThumb] = useState('');
 
@@ -27,19 +26,14 @@ export default function AdminNoticeboard() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // ─────────────────────────────────────────────
-  // Guard: only admins
-  // ─────────────────────────────────────────────
+  // Redirect non-admins away
   useEffect(() => {
     if (!profileLoading && !isAdmin) {
-      // Non-admin: kick out to dashboard
       router.replace('/dashboard');
     }
   }, [profileLoading, isAdmin, router]);
 
-  // ─────────────────────────────────────────────
   // Load posts
-  // ─────────────────────────────────────────────
   useEffect(() => {
     async function loadPosts() {
       try {
@@ -77,9 +71,7 @@ export default function AdminNoticeboard() {
     loadPosts();
   }, []);
 
-  // ─────────────────────────────────────────────
   // Helpers
-  // ─────────────────────────────────────────────
   function resetForm() {
     setTitle('');
     setBody('');
@@ -102,9 +94,7 @@ export default function AdminNoticeboard() {
 
   const hasSocial = igUrl.trim().length > 0;
 
-  // ─────────────────────────────────────────────
   // Create / update post
-  // ─────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
     if (!title.trim() && !body.trim() && !hasSocial) {
@@ -122,12 +112,12 @@ export default function AdminNoticeboard() {
         body: body || null,
         is_pinned: isPinned,
 
-        // Old IG-specific fields (for backwards compatibility)
+        // Legacy IG fields
         ig_url: hasSocial ? trimmedUrl : null,
         ig_thumbnail_url: hasSocial ? igThumb.trim() || null : null,
         ig_platform: hasSocial ? igPlatform : null,
 
-        // New generic fields used by the public UI
+        // New generic fields
         social_platform: hasSocial ? igPlatform : null,
         social_url: hasSocial ? trimmedUrl : null,
       };
@@ -185,9 +175,7 @@ export default function AdminNoticeboard() {
     }
   }
 
-  // ─────────────────────────────────────────────
   // Delete post
-  // ─────────────────────────────────────────────
   async function handleDelete(id) {
     if (!window.confirm('Delete this noticeboard post?')) return;
     try {
@@ -208,11 +196,8 @@ export default function AdminNoticeboard() {
     }
   }
 
-  // ─────────────────────────────────────────────
   // Edit existing post
-  // ─────────────────────────────────────────────
   function startEdit(post) {
-    // Prefer new generic fields, then fall back to old IG ones
     const platform =
       post.social_platform || post.ig_platform || 'instagram';
     const url = post.social_url || post.ig_url || '';
@@ -226,25 +211,70 @@ export default function AdminNoticeboard() {
     setIgThumb(post.ig_thumbnail_url || '');
   }
 
+  const displayName =
+    (profile?.first_name && profile.first_name.trim()) ||
+    (profile?.username && profile.username.trim()) ||
+    (profile?.email ? profile.email.split('@')[0] : 'admin');
+
   // ─────────────────────────────────────────────
-  // RENDER
+  // RENDER – same shell pattern as admin/index
   // ─────────────────────────────────────────────
-  if (profileLoading || !isAdmin) {
-    // While loading OR if user is not admin (redirect will happen)
+  if (profileLoading) {
     return (
-      <Layout>
-        <div className="admin-root">
-          <p>Checking permissions…</p>
+      <div className="admin-screen">
+        <div className="admin-inner">
+          <section className="admin-header-card">
+            <p className="admin-eyebrow">ADMIN</p>
+            <h1 className="admin-title">Checking permissions…</h1>
+            <p className="admin-sub">Please wait a moment.</p>
+          </section>
         </div>
-      </Layout>
+        <style jsx>{styles}</style>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="admin-screen">
+        <div className="admin-inner">
+          <section className="admin-header-card">
+            <p className="admin-eyebrow">ADMIN</p>
+            <h1 className="admin-title">No access</h1>
+            <p className="admin-sub">
+              You don&apos;t have access to this page.
+            </p>
+            <a href="/dashboard" className="admin-link">
+              ← Back to dashboard
+            </a>
+          </section>
+        </div>
+        <style jsx>{styles}</style>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="admin-root">
+    <div className="admin-screen">
+      <div className="admin-inner">
+        {/* HEADER */}
+        <section className="admin-header-card">
+          <p className="admin-eyebrow">ADMIN • NOTICEBOARD</p>
+          <h1 className="admin-title">Noticeboard manager</h1>
+          <p className="admin-sub">
+            Create and edit investor updates. Pinned posts appear at the top
+            of the noticeboard and latest updates on the dashboard.
+          </p>
+          <p className="admin-sub small">
+            Logged in as <strong>{displayName}</strong>.
+          </p>
+        </section>
+
+        {/* CREATE / EDIT FORM */}
         <section className="admin-card">
-          <h1 className="admin-title">Noticeboard — Admin Panel</h1>
+          <h2 className="admin-card-title">
+            {editingId ? 'Edit noticeboard post' : 'Create new post'}
+          </h2>
 
           <form onSubmit={handleSubmit} className="form-grid">
             {/* Left: main content */}
@@ -284,13 +314,12 @@ export default function AdminNoticeboard() {
             {/* Right: social helper */}
             <div className="form-side">
               <div className="helper-title">
-                Instagram / Facebook Post Helper
+                Social post helper (optional)
               </div>
               <p className="helper-copy">
-                Paste a link to a post you like on Instagram or Facebook. It
-                will appear as a preview card on the dashboard and on the
-                noticeboard, and clicking it will open the social post in a new
-                tab.
+                Paste a link to an Instagram or Facebook post. It will appear
+                as a social preview on the noticeboard and in some dashboard
+                views. Clicking it will open the post in a new tab.
               </p>
 
               <label className="field">
@@ -350,9 +379,7 @@ export default function AdminNoticeboard() {
                         {igPlatform.toUpperCase()}
                       </span>
                       {isPinned && (
-                        <span className="helper-pill-pinned">
-                          PINNED
-                        </span>
+                        <span className="helper-pill-pinned">PINNED</span>
                       )}
                     </div>
                     <div className="helper-preview-title">
@@ -375,8 +402,8 @@ export default function AdminNoticeboard() {
                 {saving
                   ? 'Saving…'
                   : editingId
-                  ? 'Update Post'
-                  : 'Create Post'}
+                  ? 'Update post'
+                  : 'Create post'}
               </button>
               {editingId && (
                 <button
@@ -393,7 +420,7 @@ export default function AdminNoticeboard() {
 
         {/* Existing posts */}
         <section className="admin-card">
-          <h2 className="admin-subtitle">Existing posts</h2>
+          <h2 className="admin-card-title">Existing posts</h2>
 
           {loadingPosts ? (
             <p className="posts-empty">Loading posts…</p>
@@ -404,9 +431,7 @@ export default function AdminNoticeboard() {
           ) : (
             <div className="posts-list">
               {posts.map((post) => {
-                // Prefer new generic fields, fall back to legacy IG ones
-                const platform =
-                  post.social_platform || post.ig_platform;
+                const platform = post.social_platform || post.ig_platform;
                 const socialUrl = post.social_url || post.ig_url;
 
                 return (
@@ -437,6 +462,7 @@ export default function AdminNoticeboard() {
                             {formatDateTime(post.created_at)}
                           </div>
                         </div>
+
                         <div className="post-pill-row">
                           {post.is_pinned && (
                             <span className="post-pill post-pill-pinned">
@@ -494,316 +520,411 @@ export default function AdminNoticeboard() {
           )}
         </section>
 
-        {/* styles (unchanged from your original) */}
-        <style jsx>{`
-          .admin-root {
-            max-width: 1040px;
-            margin: 0 auto;
-            padding: 18px 16px 80px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-          }
-
-          .admin-card {
-            border-radius: 22px;
-            padding: 18px 20px 20px;
-            background: rgba(3, 6, 40, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
-          }
-
-          .admin-title {
-            margin: 0 0 16px;
-            font-size: 24px;
-            font-weight: 600;
-          }
-
-          .admin-subtitle {
-            margin: 0 0 12px;
-            font-size: 18px;
-          }
-
-          .form-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.2fr);
-            gap: 18px;
-          }
-
-          .form-main,
-          .form-side {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-          }
-
-          .field {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-          }
-
-          .field-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            opacity: 0.8;
-          }
-
-          .field-input,
-          .field-textarea,
-          select.field-input {
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(2, 3, 24, 0.9);
-            color: #ffffff;
-            padding: 8px 10px;
-            font-size: 13px;
-            outline: none;
-          }
-
-          .field-input:focus,
-          .field-textarea:focus,
-          select.field-input:focus {
-            border-color: rgba(255, 255, 255, 0.4);
-          }
-
-          .field-textarea {
-            resize: vertical;
-          }
-
-          .field-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-          }
-
-          .helper-title {
-            font-size: 13px;
-            font-weight: 600;
-          }
-
-          .helper-copy {
-            font-size: 12px;
-            opacity: 0.85;
-          }
-
-          .helper-preview {
-            margin-top: 8px;
-            display: flex;
-            gap: 10px;
-            border-radius: 18px;
-            padding: 10px 12px;
-            background: linear-gradient(135deg, #e84a5f, #b95dff);
-            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.95);
-          }
-
-          .helper-thumb {
-            width: 88px;
-            border-radius: 14px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            flex-shrink: 0;
-          }
-
-          .helper-preview-main {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-          }
-
-          .helper-pill-row {
-            display: flex;
-            gap: 6px;
-          }
-
-          .helper-pill-platform,
-          .helper-pill-pinned {
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            background: rgba(0, 0, 0, 0.35);
-          }
-
-          .helper-pill-pinned {
-            background: rgba(0, 0, 0, 0.6);
-          }
-
-          .helper-preview-title {
-            font-size: 13px;
-            font-weight: 600;
-          }
-
-          .helper-preview-sub {
-            font-size: 11px;
-            opacity: 0.9;
-          }
-
-          .form-actions {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 10px;
-            margin-top: 4px;
-          }
-
-          .primary-btn,
-          .secondary-btn,
-          .danger-btn {
-            border-radius: 999px;
-            padding: 9px 18px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-          }
-
-          .primary-btn {
-            background: linear-gradient(90deg, #ff8b5f, #0a147c);
-            color: #ffffff;
-          }
-
-          .secondary-btn {
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-          }
-
-          .danger-btn {
-            background: #d94841;
-            color: #ffffff;
-          }
-
-          .small {
-            padding: 6px 14px;
-            font-size: 12px;
-          }
-
-          .posts-empty {
-            font-size: 13px;
-            opacity: 0.85;
-          }
-
-          .posts-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-          }
-
-          .post-card {
-            border-radius: 18px;
-            padding: 12px 14px 12px;
-            background: rgba(3, 6, 40, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            display: flex;
-            gap: 12px;
-          }
-
-          .post-card-social {
-            background: radial-gradient(
-              circle at top left,
-              #171f76 0%,
-              #020316 70%
-            );
-          }
-
-          .post-thumb {
-            width: 96px;
-            border-radius: 14px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            flex-shrink: 0;
-          }
-
-          .post-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-
-          .post-header-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-          }
-
-          .post-title {
-            margin: 0;
-            font-size: 16px;
-          }
-
-          .post-date {
-            font-size: 11px;
-            opacity: 0.8;
-          }
-
-          .post-pill-row {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-          }
-
-          .post-pill {
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-          }
-
-          .post-pill-pinned {
-            background: rgba(255, 255, 255, 0.16);
-          }
-
-          .post-pill-platform {
-            background: linear-gradient(135deg, #e84a5f, #b95dff);
-          }
-
-          .post-body {
-            margin: 2px 0 4px;
-            font-size: 13px;
-            opacity: 0.92;
-          }
-
-          .post-ig-link {
-            font-size: 12px;
-            text-decoration: none;
-            color: #f6e7b8;
-          }
-
-          .post-actions {
-            margin-top: 6px;
-            display: flex;
-            gap: 8px;
-          }
-
-          @media (max-width: 900px) {
-            .form-grid {
-              grid-template-columns: minmax(0, 1fr);
-            }
-          }
-
-          @media (max-width: 720px) {
-            .post-card {
-              flex-direction: column;
-            }
-
-            .post-thumb {
-              width: 100%;
-              height: 150px;
-            }
-
-            .post-header-row {
-              flex-direction: column;
-              align-items: flex-start;
-            }
-          }
-        `}</style>
+        <div className="admin-bottom-safe" />
       </div>
-    </Layout>
+
+      <style jsx>{styles}</style>
+    </div>
   );
 }
+
+const styles = `
+  /* Same shell as dashboard/admin index */
+  .admin-screen {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 24px;
+  }
+
+  .admin-inner {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* HEADER CARD */
+  .admin-header-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-eyebrow {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #9ca3af;
+  }
+
+  .admin-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .admin-sub {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .admin-sub.small {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .admin-link {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #4f46e5;
+    text-decoration: none;
+  }
+
+  .admin-link:hover {
+    text-decoration: underline;
+  }
+
+  /* MAIN CARDS */
+  .admin-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .admin-card-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  /* FORM GRID */
+  .form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr);
+    gap: 14px;
+  }
+
+  .form-main,
+  .form-side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #6b7280;
+  }
+
+  .field-input,
+  .field-textarea,
+  select.field-input {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #111827;
+    padding: 8px 10px;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .field-input:focus,
+  .field-textarea:focus,
+  select.field-input:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+    background: #ffffff;
+  }
+
+  .field-textarea {
+    resize: vertical;
+    min-height: 110px;
+  }
+
+  .field-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #111827;
+  }
+
+  .helper-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .helper-copy {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 4px;
+  }
+
+  .helper-preview {
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    border-radius: 16px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f97316, #6366f1);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.4);
+    color: #ffffff;
+  }
+
+  .helper-thumb {
+    width: 80px;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+  }
+
+  .helper-preview-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .helper-pill-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .helper-pill-platform,
+  .helper-pill-pinned {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .helper-pill-pinned {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .helper-preview-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .helper-preview-sub {
+    font-size: 11px;
+    opacity: 0.95;
+  }
+
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .primary-btn,
+  .secondary-btn,
+  .danger-btn {
+    border-radius: 999px;
+    padding: 9px 18px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .primary-btn {
+    background: linear-gradient(135deg, #f97316, #ec4899);
+    color: #ffffff;
+    box-shadow: 0 12px 28px rgba(249, 115, 22, 0.35);
+  }
+
+  .primary-btn:disabled {
+    opacity: 0.8;
+    cursor: default;
+  }
+
+  .secondary-btn {
+    background: #f3f4f6;
+    color: #111827;
+  }
+
+  .danger-btn {
+    background: #ef4444;
+    color: #ffffff;
+  }
+
+  .small {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  /* POSTS LIST */
+  .posts-empty {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .post-card {
+    border-radius: 16px;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    gap: 10px;
+  }
+
+  .post-card-social {
+    background: linear-gradient(135deg, #eff6ff, #eef2ff);
+  }
+
+  .post-thumb {
+    width: 80px;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+  }
+
+  .post-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .post-header-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .post-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .post-date {
+    font-size: 11px;
+    color: #6b7280;
+  }
+
+  .post-pill-row {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .post-pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .post-pill-pinned {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fbbf24;
+  }
+
+  .post-pill-platform {
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #a5b4fc;
+  }
+
+  .post-body {
+    margin: 2px 0 2px;
+    font-size: 12px;
+    color: #4b5563;
+  }
+
+  .post-ig-link {
+    font-size: 12px;
+    color: #4f46e5;
+    text-decoration: none;
+  }
+
+  .post-ig-link:hover {
+    text-decoration: underline;
+  }
+
+  .post-actions {
+    margin-top: 4px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .admin-bottom-safe {
+    height: 60px;
+  }
+
+  @media (max-width: 900px) {
+    .form-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .admin-screen {
+      padding: 10px 12px 80px;
+    }
+
+    .admin-card {
+      padding: 12px 12px 14px;
+    }
+
+    .post-card {
+      flex-direction: column;
+    }
+
+    .post-thumb {
+      width: 100%;
+      height: 150px;
+    }
+
+    .post-header-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .admin-bottom-safe {
+      height: 80px;
+    }
+  }
+`;

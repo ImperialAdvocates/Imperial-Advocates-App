@@ -8,184 +8,300 @@ export default function AdminHome() {
   const router = useRouter();
   const { loading, isAdmin, profile } = useProfile();
 
-  // If not admin, bounce them back to dashboard
+  // Redirect non-admins back to dashboard
   useEffect(() => {
     if (!loading && !isAdmin) {
       router.replace('/dashboard');
     }
   }, [loading, isAdmin, router]);
 
+  const displayName =
+    (profile?.first_name && profile.first_name.trim()) ||
+    (profile?.username && profile.username.trim()) ||
+    (profile?.email ? profile.email.split('@')[0] : 'admin');
+
+  // While we’re checking permissions, still keep the shell so it looks consistent
   if (loading) {
     return (
-      <p style={{ opacity: 0.8 }}>Checking permissions…</p>
+      <div className="admin-screen">
+        <div className="admin-inner">
+          <section className="admin-header-card">
+            <p className="admin-eyebrow">ADMIN</p>
+            <h1 className="admin-title">Checking permissions…</h1>
+            <p className="admin-sub">Please wait a moment.</p>
+          </section>
+        </div>
+        <style jsx>{styles}</style>
+      </div>
     );
   }
 
+  // Fallback if redirect didn’t happen
   if (!isAdmin) {
-    // Brief flash message if redirect didn’t happen for some reason
     return (
-      <p style={{ opacity: 0.8 }}>You don’t have access to this page.</p>
+      <div className="admin-screen">
+        <div className="admin-inner">
+          <section className="admin-header-card">
+            <p className="admin-eyebrow">ADMIN</p>
+            <h1 className="admin-title">No access</h1>
+            <p className="admin-sub">
+              You don&apos;t have access to this page.
+            </p>
+            <Link href="/dashboard" className="admin-link">
+              ← Back to dashboard
+            </Link>
+          </section>
+        </div>
+        <style jsx>{styles}</style>
+      </div>
     );
   }
 
   return (
-    <div className="admin-page">
-      <header className="admin-header">
-        <p className="admin-eyebrow">IMPERIAL CONTROL • ADMIN</p>
-        <h1 className="admin-title">Admin control centre</h1>
-        <p className="admin-subtitle">
-          Welcome back, {profile?.username || 'admin'}.{' '}
-          Manage training content, noticeboard posts and meetings from one place.
-        </p>
-      </header>
-
-      <section className="admin-grid">
-        {/* Noticeboard */}
-        <Link href="/admin/noticeboard" className="admin-card">
-          <div className="admin-pill">Noticeboard</div>
-          <h2>Manage noticeboard posts</h2>
-          <p>
-            Create new updates, pin important announcements and remove old posts
-            without logging into Supabase.
+    <div className="admin-screen">
+      <div className="admin-inner">
+        {/* HEADER – matches light card style */}
+        <section className="admin-header-card">
+          <p className="admin-eyebrow">IMPERIAL CONTROL • ADMIN</p>
+          <h1 className="admin-title">Admin control centre</h1>
+          <p className="admin-sub">
+            Welcome back, {displayName}. Manage training content and
+            noticeboard posts from one place.
           </p>
-          <span className="admin-cta">Open noticeboard manager →</span>
-        </Link>
+        </section>
 
-        {/* Courses */}
-        <Link href="/admin/courses" className="admin-card">
-          <div className="admin-pill">Courses</div>
-          <h2>Manage courses &amp; lessons</h2>
-          <p>
-            Add new courses, update lesson content and control which modules
-            investors see in their portal.
-          </p>
-          <span className="admin-cta">Open course manager →</span>
-        </Link>
+        {/* GRID OF ACTION CARDS */}
+        <section className="admin-grid-card">
+          <h2 className="admin-grid-heading">Admin tools</h2>
 
-        {/* Meetings */}
-        <Link href="/admin/meetings" className="admin-card">
-          <div className="admin-pill">Meetings</div>
-          <h2>Manage upcoming meetings</h2>
-          <p>
-            Create or update strategy calls, webinar sessions and live Q&amp;A
-            events in your calendar.
-          </p>
-          <span className="admin-cta">Open meetings manager →</span>
-        </Link>
-      </section>
+          <div className="admin-grid">
+            {/* Noticeboard */}
+            <Link href="/admin/noticeboard" className="admin-tool">
+              <div className="admin-tool-icon admin-tool-icon--orange">NB</div>
+              <div className="admin-tool-body">
+                <p className="admin-tool-label">Noticeboard</p>
+                <h3 className="admin-tool-title">
+                  Manage noticeboard posts
+                </h3>
+                <p className="admin-tool-sub">
+                  Create new updates, pin important announcements and remove old
+                  posts without logging into Supabase.
+                </p>
+                <span className="admin-tool-cta">
+                  Open noticeboard manager →
+                </span>
+              </div>
+            </Link>
 
-      <style jsx>{`
-        .admin-page {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
+            {/* Courses */}
+            <Link href="/admin/courses" className="admin-tool">
+              <div className="admin-tool-icon admin-tool-icon--blue">CRS</div>
+              <div className="admin-tool-body">
+                <p className="admin-tool-label">Courses</p>
+                <h3 className="admin-tool-title">
+                  Manage courses &amp; lessons
+                </h3>
+                <p className="admin-tool-sub">
+                  Add new courses, update lesson content and control which
+                  modules investors see in their portal.
+                </p>
+                <span className="admin-tool-cta">
+                  Open course manager →
+                </span>
+              </div>
+            </Link>
+          </div>
+        </section>
 
-        .admin-header {
-          background: radial-gradient(
-            circle at top left,
-            #283b8f 0%,
-            #050a40 55%,
-            #02041f 100%
-          );
-          border-radius: 22px;
-          padding: 20px 22px 22px;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 22px 60px rgba(0, 0, 0, 0.9);
-        }
+        <div className="admin-bottom-safe" />
+      </div>
 
-        .admin-eyebrow {
-          margin: 0 0 4px;
-          font-size: 11px;
-          letter-spacing: 0.24em;
-          text-transform: uppercase;
-          opacity: 0.82;
-        }
-
-        .admin-title {
-          margin: 0 0 6px;
-          font-size: 22px;
-          font-weight: 700;
-        }
-
-        .admin-subtitle {
-          margin: 0;
-          font-size: 13px;
-          opacity: 0.9;
-          max-width: 640px;
-        }
-
-        .admin-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 16px;
-        }
-
-        .admin-card {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          padding: 18px 18px 16px;
-          border-radius: 20px;
-          text-decoration: none;
-          color: #ffffff;
-          background: radial-gradient(circle at top left, #f68a65 0%, #091654 60%);
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 18px 48px rgba(0, 0, 0, 0.85);
-          transition: transform 0.08s ease-out, box-shadow 0.08s ease-out,
-            background 0.12s ease-out;
-        }
-
-        .admin-card:nth-child(2) {
-          background: radial-gradient(circle at top left, #6bb1ff 0%, #081342 60%);
-        }
-
-        .admin-card:nth-child(3) {
-          background: radial-gradient(circle at top left, #f2ce63 0%, #081342 60%);
-        }
-
-        .admin-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95);
-        }
-
-        .admin-pill {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 3px 10px;
-          border-radius: 999px;
-          font-size: 10px;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          background: rgba(0, 0, 0, 0.3);
-          color: #fef7dd;
-        }
-
-        .admin-card h2 {
-          margin: 4px 0;
-          font-size: 16px;
-          font-weight: 600;
-        }
-
-        .admin-card p {
-          margin: 0;
-          font-size: 13px;
-          opacity: 0.95;
-        }
-
-        .admin-cta {
-          margin-top: 8px;
-          font-size: 12px;
-          opacity: 0.9;
-        }
-
-        @media (max-width: 900px) {
-          .admin-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
+      <style jsx>{styles}</style>
     </div>
   );
 }
+
+const styles = `
+  /* Match dashboard shell */
+  .admin-screen {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 24px;
+  }
+
+  .admin-inner {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* HEADER CARD */
+  .admin-header-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-eyebrow {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #9ca3af;
+  }
+
+  .admin-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .admin-sub {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+    max-width: 640px;
+  }
+
+  .admin-link {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #4f46e5;
+    text-decoration: none;
+  }
+
+  .admin-link:hover {
+    text-decoration: underline;
+  }
+
+  /* GRID CARD */
+  .admin-grid-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .admin-grid-heading {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .admin-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .admin-tool {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #0f172a;
+    background: linear-gradient(145deg, #ffffff, #eef2ff);
+    box-shadow:
+      0 14px 36px rgba(15, 23, 42, 0.16),
+      0 0 0 1px rgba(209, 213, 219, 0.7);
+    transition: transform 0.08s ease-out, box-shadow 0.12s ease-out;
+  }
+
+  .admin-tool:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 18px 50px rgba(15, 23, 42, 0.24),
+      0 0 0 1px rgba(129, 140, 248, 0.9);
+  }
+
+  .admin-tool-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #111827;
+    flex-shrink: 0;
+  }
+
+  .admin-tool-icon--orange {
+    background: radial-gradient(circle at top left, #fed7aa, #f97316);
+  }
+
+  .admin-tool-icon--blue {
+    background: radial-gradient(circle at top left, #bfdbfe, #3b82f6);
+  }
+
+  .admin-tool-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .admin-tool-label {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #9ca3af;
+  }
+
+  .admin-tool-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .admin-tool-sub {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .admin-tool-cta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #4f46e5;
+  }
+
+  .admin-bottom-safe {
+    height: 60px;
+  }
+
+  @media (max-width: 720px) {
+    .admin-screen {
+      padding: 10px 12px 80px;
+    }
+
+    .admin-grid-card {
+      padding: 12px 12px 14px;
+    }
+
+    .admin-tool {
+      align-items: flex-start;
+    }
+
+    .admin-bottom-safe {
+      height: 80px;
+    }
+  }
+`;

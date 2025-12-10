@@ -4,7 +4,7 @@ import BottomNav from './bottomnav';
 export default function LayoutShell({ children }) {
   return (
     <div className="ia-shell">
-      {/* TOP BANNER (your original white header) */}
+      {/* TOP BANNER */}
       <header className="ia-header">
         <div className="ia-header-bar">
           <div className="ia-header-brand">
@@ -24,14 +24,14 @@ export default function LayoutShell({ children }) {
         <div className="ia-main-inner">{children}</div>
       </main>
 
-      {/* BOTTOM NAV (tab bar) */}
+      {/* BOTTOM NAV */}
       <BottomNav />
 
       <style jsx>{`
         .ia-shell {
           min-height: 100vh;
-          background: radial-gradient(circle at top, #0d1a80 0%, #020316 55%);
-          color: #fff;
+          background: #f5f7fb;
+          color: #111320;
           font-family: inherit;
           display: flex;
           flex-direction: column;
@@ -53,8 +53,9 @@ export default function LayoutShell({ children }) {
             to bottom,
             #f7f6fc 0%,
             #fdf8f1 40%,
-            rgba(247, 246, 252, 0.65) 100%
+            rgba(247, 246, 252, 0.78) 100%
           );
+          border-bottom: 1px solid rgba(203, 209, 234, 0.7);
         }
 
         .ia-header-bar {
@@ -79,7 +80,7 @@ export default function LayoutShell({ children }) {
           height: 46px;
           width: auto;
           border-radius: 12px;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
         }
 
         .ia-header-text {
@@ -111,7 +112,7 @@ export default function LayoutShell({ children }) {
         .ia-main-inner {
           max-width: 1080px;
           margin: 0 auto;
-          padding: 12px 16px 32px;
+          padding: 0 0 32px;
         }
 
         @media (max-width: 720px) {
@@ -141,20 +142,20 @@ export default function LayoutShell({ children }) {
           }
 
           .ia-main-inner {
-            padding: 8px 12px 28px;
+            padding: 0 0 28px;
           }
         }
       `}</style>
 
-      {/* Global reset & hide old navbars so no ghost text behind bottom nav */}
+      {/* Global base styles */}
       <style jsx global>{`
         html,
         body {
           padding: 0;
           margin: 0;
           font-family: inherit;
-          background: #020316;
-          color: #f9fafb;
+          background: #f5f7fb;
+          color: #111320;
         }
 
         * {

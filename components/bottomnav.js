@@ -41,7 +41,6 @@ export default function BottomNav() {
     return currentPath === path || currentPath.startsWith(path + '/');
   };
 
-  // ICONS
   const renderIcon = (href) => {
     const common = {
       viewBox: '0 0 24 24',
@@ -49,7 +48,6 @@ export default function BottomNav() {
       'aria-hidden': 'true',
     };
 
-    // Home
     if (href.startsWith('/dashboard')) {
       return (
         <svg {...common}>
@@ -65,7 +63,6 @@ export default function BottomNav() {
       );
     }
 
-    // Courses
     if (href.startsWith('/courses')) {
       return (
         <svg {...common}>
@@ -87,11 +84,9 @@ export default function BottomNav() {
       );
     }
 
-    // Noticeboard (board + pin / key style)
     if (href.startsWith('/noticeboard')) {
       return (
         <svg {...common}>
-          {/* board */}
           <path
             d="M8 7h6a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-5"
             fill="none"
@@ -100,7 +95,6 @@ export default function BottomNav() {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          {/* pin circle */}
           <circle
             cx="9"
             cy="7"
@@ -109,7 +103,6 @@ export default function BottomNav() {
             stroke="currentColor"
             strokeWidth="1.8"
           />
-          {/* arm */}
           <path
             d="M10.5 8.5 13 11"
             fill="none"
@@ -121,7 +114,6 @@ export default function BottomNav() {
       );
     }
 
-    // Admin
     if (href.startsWith('/admin')) {
       return (
         <svg {...common}>
@@ -145,7 +137,6 @@ export default function BottomNav() {
       );
     }
 
-    // fallback dot
     return <span className="ia-nav-icon-svg">•</span>;
   };
 
@@ -170,26 +161,18 @@ export default function BottomNav() {
             renderIcon(item.href)
           );
 
-          if (active) {
-            // ACTIVE: pill with icon + label
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="ia-nav-link ia-nav-link--active"
-              >
-                <span className="ia-nav-pill">
-                  <span className="ia-nav-icon-wrap">{icon}</span>
-                  <span className="ia-nav-label">{item.label}</span>
-                </span>
-              </Link>
-            );
-          }
-
-          // INACTIVE: circle with icon
           return (
-            <Link key={item.href} href={item.href} className="ia-nav-link">
-              <span className="ia-nav-circle">{icon}</span>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={
+                active ? 'ia-nav-link ia-nav-link--active' : 'ia-nav-link'
+              }
+            >
+              <div className="ia-nav-item">
+                <span className="ia-nav-icon-wrap">{icon}</span>
+                <span className="ia-nav-label">{item.label}</span>
+              </div>
             </Link>
           );
         })}
@@ -201,22 +184,23 @@ export default function BottomNav() {
           left: 0;
           right: 0;
           bottom: 0;
-          height: 64px;
           z-index: 999;
-          background: radial-gradient(circle at top, #050815, #02030a 70%);
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          padding-bottom: env(safe-area-inset-bottom);
+          padding: 0 16px 12px;
+          padding-bottom: calc(12px + env(safe-area-inset-bottom));
+          background: transparent;
         }
 
         .ia-nav-inner {
-          max-width: 900px;
+          max-width: 520px;
           margin: 0 auto;
-          height: 100%;
+          height: 56px;
+          border-radius: 24px;
+          background: #ffffff;
+          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
           display: flex;
           align-items: center;
           justify-content: space-around;
-          padding: 0 16px;
-          gap: 12px;
+          padding: 0 10px;
         }
 
         .ia-nav-link {
@@ -225,92 +209,78 @@ export default function BottomNav() {
           align-items: center;
           justify-content: center;
           text-decoration: none;
-          color: rgba(255, 255, 255, 0.9);
+          color: #a1a6c0;
         }
 
         .ia-nav-link--active {
-          color: #ffffff;
+          color: #3b4bd1;
         }
 
-        /* ACTIVE pill */
-        .ia-nav-pill {
-          min-width: 120px;
-          height: 44px;
-          padding: 0 18px;
-          border-radius: 999px;
-          display: inline-flex;
+        .ia-nav-item {
+          display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          background: radial-gradient(circle at top, #101a63, #050824 70%);
-          border: 1px solid rgba(246, 231, 184, 0.95);
-          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.95);
+          gap: 3px;
+          font-size: 11px;
+        }
+
+        .ia-nav-icon-wrap {
+          width: 26px;
+          height: 26px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .ia-nav-link--active .ia-nav-icon-wrap {
+          background: rgba(59, 75, 209, 0.08);
         }
 
         .ia-nav-label {
-          font-size: 13px;
-          font-weight: 600;
+          font-size: 11px;
         }
 
-        /* INACTIVE circles */
-        .ia-nav-circle {
-          width: 42px;
-          height: 42px;
-          border-radius: 999px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: radial-gradient(
-            circle at center,
-            rgba(45, 55, 110, 0.45),
-            rgba(10, 15, 40, 0.95)
-          );
-          backdrop-filter: blur(8px);
-          box-shadow: 0 12px 26px rgba(0, 0, 0, 0.85);
-        }
-
-        /* icon size */
         .ia-nav-icon-svg {
-          width: 24px;
-          height: 24px;
+          width: 22px;
+          height: 22px;
           display: block;
         }
 
-        /* avatar styles */
         .ia-nav-avatar-wrap {
-          width: 28px;
-          height: 28px;
+          width: 22px;
+          height: 22px;
           border-radius: 999px;
-          border: 1.6px solid rgba(255, 255, 255, 0.9);
+          border: 1.4px solid rgba(59, 75, 209, 0.9);
+          overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.85);
         }
 
         .ia-nav-avatar {
           width: 100%;
           height: 100%;
-          border-radius: 999px;
           object-fit: cover;
+          border-radius: inherit;
         }
 
         .ia-nav-avatar-initial {
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 600;
-          background: #000000;
+          background: #3b4bd1;
           color: #ffffff;
+          width: 100%;
+          height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        @media (min-width: 1024px) {
-          .ia-nav {
-            height: 66px;
-          }
+        @media (min-width: 720px) {
           .ia-nav-inner {
-            max-width: 640px;
+            max-width: 520px;
           }
         }
       `}</style>

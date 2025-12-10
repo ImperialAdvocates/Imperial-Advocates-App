@@ -32,15 +32,12 @@ export default function LoginPage() {
         });
 
       if (authError) {
-        console.error('Login error:', authError);
         setError(authError.message || 'Unable to sign in.');
         return;
       }
 
-      // Success → go to dashboard
       router.push('/dashboard');
     } catch (err) {
-      console.error('Unexpected login error:', err);
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -48,40 +45,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-root">
-      <div className="auth-shell">
-        {/* Top branding header */}
-        <header className="auth-header">
-          <div className="logo-wrap">
-            <img
-              src="/ia-logo.png"
-              alt="Imperial Advocates"
-              className="logo-img"
-            />
+    <div className="login-page">
+      <div className="login-inner">
+
+        {/* IA Header */}
+        <header className="login-header">
+          <img src="/ia-logo.png" alt="IA" className="header-logo" />
+          <div className="header-text">
+            <h1 className="header-title">IMPERIAL ADVOCATES</h1>
+            <p className="header-sub">Investor Training & Client Portal</p>
           </div>
-          <p className="brand-kicker">IMPERIAL ADVOCATES</p>
-          <h1 className="brand-title">
-            Investor Training &amp; Client Portal
-          </h1>
-          <p className="brand-subtitle">
-            Log in to access your NDIS, co-living and rooming house
-            training, resources and client updates.
-          </p>
         </header>
 
-        {/* Main card */}
-        <main className="card">
+        {/* Card */}
+        <main className="login-card">
           <h2 className="card-title">Welcome back</h2>
           <p className="card-subtitle">
             Enter your details to access your Imperial Advocates portal.
           </p>
 
           <form onSubmit={handleLogin} className="form">
+
             <label className="field-label">Email</label>
             <input
               className="field-input"
               type="email"
-              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -91,7 +79,6 @@ export default function LoginPage() {
             <input
               className="field-input"
               type="password"
-              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
@@ -99,18 +86,14 @@ export default function LoginPage() {
 
             {error && <p className="error-text">{error}</p>}
 
-            <button
-              type="submit"
-              className="primary-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="primary-btn" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
 
-          <div className="auth-footer">
-            <span>Don&apos;t have an account?</span>
-            <Link href="/signup" className="link">
+          <div className="footer-row">
+            <span>Don’t have an account?</span>
+            <Link href="/signup" className="footer-link">
               Create one
             </Link>
           </div>
@@ -118,229 +101,147 @@ export default function LoginPage() {
       </div>
 
       <style jsx>{`
-        .auth-root {
+        .login-page {
           min-height: 100vh;
+          background: #f5f7fb;
           display: flex;
-          align-items: center;
           justify-content: center;
-          padding: 16px;
-          background: radial-gradient(
-              circle at top left,
-              rgba(217, 72, 65, 0.35),
-              transparent 55%
-            ),
-            radial-gradient(
-              circle at bottom right,
-              rgba(198, 166, 103, 0.28),
-              transparent 50%
-            ),
-            radial-gradient(
-              circle at top right,
-              rgba(10, 20, 124, 0.85),
-              #020314 70%
-            );
-          color: #ffffff;
+          padding: 24px 16px;
         }
 
-        .auth-shell {
+        .login-inner {
           width: 100%;
-          max-width: 960px;
-          display: grid;
-          grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-          gap: 24px;
-          align-items: center;
+          max-width: 420px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
 
-        .auth-header {
-          padding: 18px 10px 18px 0;
-        }
-
-        .logo-wrap {
-          width: 72px;
-          height: 72px;
-          border-radius: 18px;
-          background: radial-gradient(
-            circle at top left,
-            rgba(198, 166, 103, 0.5),
-            rgba(5, 10, 64, 0.95)
-          );
+        /* HEADER — matches dashboard */
+        .login-header {
           display: flex;
           align-items: center;
-          justify-content: center;
-          margin-bottom: 10px;
-          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+          gap: 10px;
+          padding: 12px 16px;
+          background: #ffffff;
+          border-radius: 16px;
+          box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
         }
 
-        .logo-img {
-          max-width: 56px;
-          max-height: 56px;
+        .header-logo {
+          width: 48px;
+          height: 48px;
           object-fit: contain;
         }
 
-        .brand-kicker {
-          font-size: 11px;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          opacity: 0.8;
-          margin: 0 0 4px;
+        .header-text {
+          display: flex;
+          flex-direction: column;
+          line-height: 1.2;
         }
 
-        .brand-title {
-          margin: 0 0 8px;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        .brand-subtitle {
+        .header-title {
           margin: 0;
-          font-size: 13px;
-          max-width: 380px;
-          opacity: 0.9;
+          font-size: 14px;
+          font-weight: 700;
+          color: #151827;
         }
 
-        .card {
+        .header-sub {
+          margin: 0;
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        /* CARD */
+        .login-card {
+          background: #ffffff;
           border-radius: 22px;
-          padding: 20px 20px 22px;
-          background: radial-gradient(
-              circle at top left,
-              rgba(255, 255, 255, 0.06),
-              transparent 50%
-            ),
-            rgba(5, 10, 64, 0.96);
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 26px 60px rgba(0, 0, 0, 0.9);
+          padding: 20px 22px;
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
         }
 
         .card-title {
           margin: 0 0 4px;
           font-size: 18px;
           font-weight: 600;
+          color: #111827;
         }
 
         .card-subtitle {
           margin: 0 0 16px;
           font-size: 13px;
-          opacity: 0.85;
+          color: #6b7280;
         }
 
-        .form {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
+        /* INPUTS — match profile/dashboard */
         .field-label {
+          margin-bottom: 4px;
           font-size: 11px;
           text-transform: uppercase;
-          letter-spacing: 0.16em;
-          opacity: 0.8;
+          letter-spacing: 0.12em;
+          color: #6b7280;
         }
 
         .field-input {
           width: 100%;
           border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          background: rgba(2, 4, 26, 0.95);
+          border: 1px solid #d1d5db;
+          background: #f9fafb;
+          color: #111827;
           padding: 10px 12px;
           font-size: 14px;
-          color: #ffffff;
-        }
-
-        .field-input::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 10px;
         }
 
         .field-input:focus {
           outline: none;
-          border-color: rgba(246, 231, 184, 0.9);
-          box-shadow: 0 0 0 1px rgba(246, 231, 184, 0.7);
+          border-color: #6366f1;
+          background: #ffffff;
         }
 
         .error-text {
-          margin: 2px 0 0;
+          margin-top: -4px;
+          margin-bottom: 6px;
           font-size: 12px;
-          color: #ffb3b3;
+          color: #dc2626;
         }
 
+        /* BUTTON — same gradient as dashboard */
         .primary-btn {
-          margin-top: 4px;
+          margin-top: 6px;
           width: 100%;
           border-radius: 999px;
           border: none;
           padding: 11px 16px;
           font-size: 15px;
           font-weight: 600;
-          cursor: pointer;
+          background: linear-gradient(135deg, #ff9f6a, #ff5f6a);
           color: #ffffff;
-          background: linear-gradient(135deg, #d94841, #ff8b5f);
-          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
-          transition: transform 0.08s ease-out, box-shadow 0.08s ease-out,
-            opacity 0.1s ease-out;
-        }
-
-        .primary-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 22px 50px rgba(0, 0, 0, 0.95);
-        }
-
-        .primary-btn:active {
-          transform: translateY(0);
-          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.9);
+          box-shadow: 0 10px 25px rgba(255, 120, 96, 0.35);
         }
 
         .primary-btn[disabled] {
           opacity: 0.7;
-          cursor: default;
         }
 
-        .auth-footer {
-          margin-top: 12px;
+        /* FOOTER */
+        .footer-row {
+          margin-top: 14px;
           font-size: 13px;
           display: flex;
           gap: 4px;
           justify-content: center;
-          opacity: 0.9;
+          color: #6b7280;
         }
 
-        .link {
-          color: #f6e7b8;
+        .footer-link {
+          color: #555fe0;
           text-decoration: none;
         }
 
-        .link:hover {
+        .footer-link:hover {
           text-decoration: underline;
-        }
-
-        @media (max-width: 820px) {
-          .auth-shell {
-            grid-template-columns: minmax(0, 1fr);
-          }
-
-          .auth-header {
-            text-align: center;
-            padding: 0;
-          }
-
-          .logo-wrap {
-            margin: 0 auto 10px;
-          }
-
-          .brand-subtitle {
-            margin: 0 auto;
-          }
-
-          .card {
-            margin-top: 6px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .brand-title {
-            font-size: 20px;
-          }
-          .card {
-            padding: 16px 14px 18px;
-          }
         }
       `}</style>
     </div>

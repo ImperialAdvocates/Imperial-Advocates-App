@@ -32,7 +32,6 @@ export default function LessonPage() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // For navigating prev/next
   const [currentIndex, setCurrentIndex] = useState(null);
 
   // ─────────────────────────────────────────────
@@ -128,6 +127,7 @@ export default function LessonPage() {
     };
   }, [courseId, lessonId]);
 
+  // Display name (same vibe as rest of app)
   const displayName =
     (profile?.first_name && profile.first_name.trim()) ||
     (profile?.username && profile.username.trim()) ||
@@ -151,7 +151,6 @@ export default function LessonPage() {
       }
 
       if (!isCompleted) {
-        // Mark as complete (upsert – let Supabase use the table PK/unique constraint)
         const payload = {
           user_id: user.id,
           course_id: courseId,
@@ -170,7 +169,6 @@ export default function LessonPage() {
 
         setIsCompleted(true);
       } else {
-        // Optional: un-complete by deleting the row
         const { error } = await supabase
           .from('lesson_progress')
           .delete()
@@ -190,9 +188,7 @@ export default function LessonPage() {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Navigation helpers
-  // ─────────────────────────────────────────────
+  // Prev / next
   const prevLesson =
     currentIndex !== null && currentIndex > 0
       ? lessons[currentIndex - 1]
@@ -203,635 +199,493 @@ export default function LessonPage() {
       ? lessons[currentIndex + 1]
       : null;
 
+  const lessonNumber =
+    currentIndex !== null ? `Lesson ${currentIndex + 1}` : 'Lesson';
+
+  // Decide how to render the video
+  const hasDirectVideo =
+    !!lesson?.video_url && !lesson.video_url.includes('drive.google.com');
+  const driveEmbedUrl = getDriveEmbedUrl(lesson?.video_url || '');
+  const hasDriveVideo = !!driveEmbedUrl;
+
   // ─────────────────────────────────────────────
-  // RENDER
+  // RENDER STATES
   // ─────────────────────────────────────────────
   if (loading && !lesson) {
     return (
-      <div className="lesson-root">
-        <p className="loading-text">Loading lesson…</p>
+      <div className="lesson-screen">
+        <div className="lesson-phone">
+          <div className="lesson-header">
+            <p className="lesson-eyebrow">LESSON</p>
+            <h1 className="lesson-title">Loading lesson…</h1>
+          </div>
+        </div>
+        <style jsx>{styles}</style>
       </div>
     );
   }
 
   if (!lesson || !course) {
     return (
-      <div className="lesson-root">
-        <div className="missing-wrap">
-          <h1 className="missing-title">Lesson not found</h1>
-          <p className="missing-text">
-            We couldn&apos;t find this lesson. It may have been removed or
-            you don&apos;t have access.
-          </p>
-          <Link href={`/courses/${courseId || ''}`} className="back-link">
-            ← Back to course
-          </Link>
+      <div className="lesson-screen">
+        <div className="lesson-phone">
+          <div className="lesson-header">
+            <p className="lesson-eyebrow">LESSON</p>
+            <h1 className="lesson-title">Lesson not found</h1>
+            <p className="lesson-breadcrumbs">
+              It may have been removed or you don&apos;t have access.
+            </p>
+          </div>
+
+          <div className="lesson-notes-card">
+            <Link href={`/courses/${courseId || ''}`}>
+              ← Back to course overview
+            </Link>
+          </div>
         </div>
+        <style jsx>{styles}</style>
       </div>
     );
   }
 
   const totalLessons = lessons.length;
 
-  // Decide how to render the video: direct URL, or Google Drive embed
-  const hasDirectVideo = !!lesson.video_url && !lesson.video_url.includes('drive.google.com');
-  const driveEmbedUrl = getDriveEmbedUrl(lesson.video_url || '');
-  const hasDriveVideo = !!driveEmbedUrl;
-
   return (
-    <div className="lesson-root">
-      {/* HEADER / BREADCRUMB */}
-      <section className="lesson-header">
-        <div className="header-left">
-          <div className="header-eyebrow">LESSON • IMPERIAL TRAINING</div>
-          <h1 className="header-title">{lesson.title}</h1>
-          <div className="header-sub">
-            <span className="crumb">
-              <Link href="/courses" className="crumb-link">
-                All courses
-              </Link>
-            </span>
-            <span className="crumb-separator">/</span>
-            <span className="crumb">
-              <Link
-                href={`/courses/${course.id}`}
-                className="crumb-link"
-              >
-                {course.title}
-              </Link>
-            </span>
-            <span className="crumb-separator">/</span>
-            <span className="crumb crumb-current">
-              Lesson {currentIndex !== null ? currentIndex + 1 : '—'}
-            </span>
-          </div>
-        </div>
+    <div className="lesson-screen">
+      <div className="lesson-phone">
+        {/* HEADER CARD */}
+        <header className="lesson-header">
+          <p className="lesson-eyebrow">IMPERIAL TRAINING</p>
+          <h1 className="lesson-title">{lesson.title}</h1>
+          <p className="lesson-breadcrumbs">
+            <Link href="/courses">All courses</Link> ·{' '}
+            <Link href={`/courses/${course.id}`}>{course.title}</Link> ·{' '}
+            {lessonNumber} of {totalLessons || '—'}
+          </p>
 
-        <div className="header-right">
-          <div className="header-user-pill">
-            Logged in as <span>{displayName}</span>
+          <div className="lesson-header-bottom-row">
+            <div className="lesson-user-pill">
+              Logged in as <span>{displayName}</span>
+            </div>
+            <button
+              type="button"
+              className={
+                'lesson-complete-btn ' +
+                (isCompleted ? 'lesson-complete-btn--done' : '')
+              }
+              onClick={toggleCompletion}
+              disabled={saving}
+            >
+              {saving
+                ? 'Saving…'
+                : isCompleted
+                ? 'Mark as not complete'
+                : 'Mark lesson complete'}
+            </button>
           </div>
-          <button
-            type="button"
-            className={
-              'complete-btn ' + (isCompleted ? 'complete-btn--done' : '')
-            }
-            onClick={toggleCompletion}
-            disabled={saving}
-          >
-            {saving
-              ? 'Saving…'
-              : isCompleted
-              ? 'Mark as not complete'
-              : 'Mark lesson complete'}
-          </button>
-        </div>
-      </section>
+        </header>
 
-      {/* MAIN LAYOUT: video + sidebar */}
-      <section className="lesson-main">
-        {/* LEFT: Video & content */}
-        <div className="lesson-main-left">
-          {/* Video card */}
-          <div className="video-card">
-            {hasDirectVideo ? (
-              <video
-                className="lesson-video"
-                src={lesson.video_url}
-                controls
-                controlsList="nodownload"
-              />
-            ) : hasDriveVideo ? (
-              <div className="embed-wrap">
-                <iframe
-                  src={driveEmbedUrl}
-                  title={lesson.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            ) : lesson.embed_url ? (
-              <div className="embed-wrap">
-                <iframe
-                  src={lesson.embed_url}
-                  title={lesson.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            ) : (
-              <div className="video-placeholder">
-                <div className="video-grad" />
-                <div className="video-text">
-                  <h2>Lesson video coming soon</h2>
-                  <p>
-                    This is where the training video for this lesson will
-                    appear once it&apos;s uploaded.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* VIDEO CARD */}
+        <section className="lesson-video-card">
+          {hasDirectVideo ? (
+            <video
+              src={lesson.video_url}
+              controls
+              controlsList="nodownload"
+            />
+          ) : hasDriveVideo ? (
+            <iframe
+              src={driveEmbedUrl}
+              title={lesson.title}
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : lesson.embed_url ? (
+            <iframe
+              src={lesson.embed_url}
+              title={lesson.title}
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="lesson-video-placeholder">
+              <p>Lesson video coming soon.</p>
+            </div>
+          )}
+        </section>
 
-          {/* Lesson content card (optional fields, safe if null) */}
-          <div className="content-card">
-            <h2 className="content-title">Lesson notes</h2>
+        {/* NOTES CARD */}
+        <section className="lesson-notes-card">
+          <h2 className="lesson-notes-title">Lesson notes</h2>
+          <div className="lesson-notes-text">
             {lesson.description || lesson.summary || lesson.notes ? (
-              <p className="content-lead">
+              <p>
                 {lesson.description || lesson.summary || lesson.notes}
               </p>
             ) : (
-              <p className="content-lead">
-                Use this space for your own notes as you watch the lesson.
+              <p>
+                Use this space to take notes while you watch the lesson.
               </p>
             )}
 
-            {lesson.body || lesson.content ? (
-              <div className="content-body">
-                {(lesson.body || lesson.content)
-                  .split(/\n{2,}/)
-                  .map((block, idx) => (
-                    <p key={idx}>{block}</p>
-                  ))}
-              </div>
-            ) : null}
+            {(lesson.body || lesson.content) &&
+              (lesson.body || lesson.content)
+                .split(/\n{2,}/)
+                .map((block, idx) => (
+                  <p key={idx}>{block}</p>
+                ))}
+          </div>
+        </section>
+
+        {/* NAV ROW */}
+        <section className="lesson-nav-row">
+          {prevLesson ? (
+            <Link
+              href={`/courses/${course.id}/${prevLesson.id}`}
+              className="lesson-nav-link lesson-nav-link--ghost"
+            >
+              ← Previous lesson
+            </Link>
+          ) : (
+            <span />
+          )}
+
+          {nextLesson ? (
+            <Link
+              href={`/courses/${course.id}/${nextLesson.id}`}
+              className="lesson-nav-link"
+            >
+              Next lesson →
+            </Link>
+          ) : (
+            <Link
+              href={`/courses/${course.id}`}
+              className="lesson-nav-link lesson-nav-link--ghost"
+            >
+              Back to course overview
+            </Link>
+          )}
+        </section>
+
+        {/* OUTLINE CARD */}
+        <section className="lesson-outline-card">
+          <div className="outline-header">
+            <h2 className="outline-title">Lesson outline</h2>
+            <span className="outline-count">
+              {currentIndex !== null ? currentIndex + 1 : '–'}/
+              {totalLessons}
+            </span>
           </div>
 
-          {/* Prev/Next navigation */}
-          <div className="nav-row">
-            {prevLesson ? (
-              <Link
-                href={`/courses/${course.id}/${prevLesson.id}`}
-                className="nav-link nav-link--ghost"
-              >
-                ← Previous lesson
-              </Link>
-            ) : (
-              <span className="nav-spacer" />
-            )}
-
-            {nextLesson ? (
-              <Link
-                href={`/courses/${course.id}/${nextLesson.id}`}
-                className="nav-link"
-              >
-                Next lesson →
-              </Link>
-            ) : (
-              <Link
-                href={`/courses/${course.id}`}
-                className="nav-link nav-link--ghost"
-              >
-                Back to course overview
-              </Link>
-            )}
+          <div className="outline-list">
+            {lessons.map((l, index) => {
+              const isCurrent = String(l.id) === String(lesson.id);
+              return (
+                <Link
+                  key={l.id}
+                  href={`/courses/${course.id}/${l.id}`}
+                  className={
+                    'outline-item ' +
+                    (isCurrent ? 'outline-item--current' : '')
+                  }
+                >
+                  <div className="outline-number">{index + 1}</div>
+                  <div className="outline-label-wrap">
+                    <div className="outline-label">{l.title}</div>
+                    {isCurrent && (
+                      <div className="outline-tag">Current</div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-        </div>
+        </section>
 
-        {/* RIGHT: lesson outline */}
-        <aside className="lesson-sidebar">
-          <div className="sidebar-card">
-            <div className="sidebar-header-row">
-              <h3>Lesson outline</h3>
-              <span className="sidebar-count">
-                {currentIndex !== null ? currentIndex + 1 : '–'}/
-                {totalLessons}
-              </span>
-            </div>
+        <div className="lesson-bottom-safe" />
+      </div>
 
-            <div className="sidebar-list">
-              {lessons.map((l, index) => {
-                const isCurrent =
-                  String(l.id) === String(lesson.id);
-                return (
-                  <Link
-                    key={l.id}
-                    href={`/courses/${course.id}/${l.id}`}
-                    className={
-                      'sidebar-item ' +
-                      (isCurrent ? 'sidebar-item--current' : '')
-                    }
-                  >
-                    <div className="sidebar-index">{index + 1}</div>
-                    <div className="sidebar-text">
-                      <div className="sidebar-title">{l.title}</div>
-                      {isCurrent && (
-                        <div className="sidebar-tag">Current lesson</div>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <style jsx>{`
-        .lesson-root {
-          max-width: 1120px;
-          margin: 0 auto;
-          padding: 16px 16px 32px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .loading-text {
-          font-size: 13px;
-          opacity: 0.85;
-        }
-
-        .missing-wrap {
-          max-width: 640px;
-          padding: 18px 20px;
-          border-radius: 20px;
-          background: rgba(3, 6, 40, 0.98);
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-        }
-
-        .missing-title {
-          margin: 0 0 6px;
-          font-size: 20px;
-        }
-
-        .missing-text {
-          margin: 0 0 10px;
-          font-size: 13px;
-          opacity: 0.88;
-        }
-
-        .back-link {
-          font-size: 13px;
-          color: #f6e7b8;
-          text-decoration: none;
-        }
-
-        .back-link:hover {
-          text-decoration: underline;
-        }
-
-        /* HEADER */
-        .lesson-header {
-          border-radius: 22px;
-          padding: 16px 18px 18px;
-          background: radial-gradient(
-            circle at top left,
-            #1a2a8a 0%,
-            #060b3e 45%,
-            #020316 100%
-          );
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          box-shadow: 0 20px 52px rgba(0, 0, 0, 0.9);
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
-        }
-
-        .header-left {
-          max-width: 640px;
-        }
-
-        .header-eyebrow {
-          margin: 0 0 4px;
-          font-size: 11px;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          opacity: 0.8;
-        }
-
-        .header-title {
-          margin: 0 0 6px;
-          font-size: 22px;
-          font-weight: 700;
-        }
-
-        .header-sub {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 6px;
-          font-size: 12px;
-          opacity: 0.9;
-        }
-
-        .crumb-link {
-          color: #f6e7b8;
-          text-decoration: none;
-        }
-
-        .crumb-link:hover {
-          text-decoration: underline;
-        }
-
-        .crumb-separator {
-          opacity: 0.7;
-        }
-
-        .crumb-current {
-          opacity: 0.95;
-        }
-
-        .header-right {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          align-items: flex-end;
-        }
-
-        .header-user-pill {
-          padding: 4px 10px;
-          border-radius: 999px;
-          font-size: 11px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          background: rgba(0, 0, 0, 0.35);
-        }
-
-        .header-user-pill span {
-          margin-left: 6px;
-          font-weight: 600;
-        }
-
-        .complete-btn {
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.24);
-          padding: 7px 14px;
-          font-size: 12px;
-          font-weight: 600;
-          background: rgba(2, 4, 32, 0.9);
-          color: #fef7dd;
-          cursor: pointer;
-          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.8);
-          transition: background 0.12s ease-out, transform 0.08s ease-out,
-            box-shadow 0.12s ease-out, border-color 0.12s ease-out;
-        }
-
-        .complete-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.95);
-        }
-
-        .complete-btn--done {
-          background: linear-gradient(135deg, #22c55e, #16a34a);
-          border-color: #bbf7d0;
-          color: #020316;
-        }
-
-        .complete-btn[disabled] {
-          opacity: 0.7;
-          cursor: default;
-        }
-
-        /* MAIN LAYOUT */
-        .lesson-main {
-          display: grid;
-          grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
-          gap: 16px;
-          align-items: flex-start;
-        }
-
-        .lesson-main-left {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        /* Video card */
-        .video-card {
-          border-radius: 20px;
-          overflow: hidden;
-          background: #020316;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: 0 20px 52px rgba(0, 0, 0, 0.9);
-        }
-
-        .lesson-video {
-          width: 100%;
-          display: block;
-          max-height: 480px;
-          background: #000;
-        }
-
-        .embed-wrap {
-          position: relative;
-          padding-top: 56.25%;
-        }
-
-        .embed-wrap iframe {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-        }
-
-        .video-placeholder {
-          position: relative;
-          padding: 40px 18px 20px;
-          overflow: hidden;
-        }
-
-        .video-grad {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            circle at top left,
-            rgba(248, 180, 90, 0.5),
-            rgba(8, 12, 72, 1)
-          );
-          opacity: 0.85;
-        }
-
-        .video-text {
-          position: relative;
-          max-width: 420px;
-        }
-
-        .video-text h2 {
-          margin: 0 0 6px;
-          font-size: 18px;
-        }
-
-        .video-text p {
-          margin: 0;
-          font-size: 13px;
-          opacity: 0.9;
-        }
-
-        /* Content card */
-        .content-card {
-          border-radius: 18px;
-          padding: 14px 16px 16px;
-          background: rgba(3, 6, 40, 0.98);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          box-shadow: 0 18px 46px rgba(0, 0, 0, 0.9);
-        }
-
-        .content-title {
-          margin: 0 0 4px;
-          font-size: 16px;
-        }
-
-        .content-lead {
-          margin: 0 0 10px;
-          font-size: 13px;
-          opacity: 0.9;
-        }
-
-        .content-body p {
-          margin: 0 0 8px;
-          font-size: 13px;
-          opacity: 0.95;
-        }
-
-        /* Prev/next row */
-        .nav-row {
-          display: flex;
-          justify-content: space-between;
-          gap: 8px;
-          margin-top: 4px;
-        }
-
-        .nav-link {
-          border-radius: 999px;
-          padding: 8px 14px;
-          font-size: 12px;
-          font-weight: 600;
-          text-decoration: none;
-          color: #020316;
-          background: linear-gradient(135deg, #f8b45a, #ff8b5f);
-          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.9);
-        }
-
-        .nav-link--ghost {
-          background: rgba(3, 6, 40, 0.98);
-          color: #fef7dd;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-        }
-
-        .nav-spacer {
-          width: 120px;
-        }
-
-        /* Sidebar */
-        .lesson-sidebar {
-          position: sticky;
-          top: 96px;
-        }
-
-        .sidebar-card {
-          border-radius: 18px;
-          padding: 12px 14px 14px;
-          background: rgba(4, 7, 40, 0.98);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          box-shadow: 0 18px 46px rgba(0, 0, 0, 0.9);
-        }
-
-        .sidebar-header-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          margin-bottom: 8px;
-        }
-
-        .sidebar-header-row h3 {
-          margin: 0;
-          font-size: 14px;
-        }
-
-        .sidebar-count {
-          font-size: 12px;
-          opacity: 0.8;
-        }
-
-        .sidebar-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          max-height: 420px;
-          overflow: auto;
-        }
-
-        .sidebar-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 9px;
-          border-radius: 10px;
-          text-decoration: none;
-          color: #e5e7eb;
-          background: rgba(15, 23, 42, 0.8);
-          border: 1px solid transparent;
-          font-size: 12px;
-        }
-
-        .sidebar-item--current {
-          border-color: rgba(248, 180, 90, 0.9);
-          background: radial-gradient(
-            circle at top left,
-            rgba(248, 180, 90, 0.35),
-            rgba(15, 23, 42, 0.95)
-          );
-        }
-
-        .sidebar-index {
-          width: 22px;
-          height: 22px;
-          border-radius: 999px;
-          background: rgba(0, 0, 0, 0.6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          font-weight: 600;
-        }
-
-        .sidebar-text {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .sidebar-title {
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .sidebar-tag {
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.14em;
-          opacity: 0.8;
-        }
-
-        @media (max-width: 900px) {
-          .lesson-main {
-            grid-template-columns: minmax(0, 1fr);
-          }
-
-          .lesson-sidebar {
-            position: static;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .lesson-root {
-            padding: 12px 12px 32px;
-          }
-
-          .lesson-header {
-            flex-direction: column;
-          }
-
-          .header-right {
-            align-items: flex-start;
-          }
-        }
-      `}</style>
+      <style jsx>{styles}</style>
     </div>
   );
 }
+
+// pulled out so we can reuse in multiple return paths
+const styles = `
+  /* OUTER SHELL – MATCHES DASHBOARD WIDTH */
+  .lesson-screen {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 24px;
+  }
+
+  .lesson-phone {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* HEADER CARD */
+  .lesson-header {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lesson-eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin: 0;
+    color: #9ca3af;
+  }
+
+  .lesson-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .lesson-breadcrumbs {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .lesson-breadcrumbs a {
+    color: #4f46e5;
+    text-decoration: none;
+  }
+
+  .lesson-breadcrumbs a:hover {
+    text-decoration: underline;
+  }
+
+  .lesson-header-bottom-row {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lesson-user-pill {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4b5563;
+  }
+
+  .lesson-user-pill span {
+    font-weight: 600;
+  }
+
+  .lesson-complete-btn {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #ffffff;
+    color: #111827;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  }
+
+  .lesson-complete-btn--done {
+    background: #22c55e;
+    color: #f9fafb;
+    border-color: #16a34a;
+  }
+
+  .lesson-complete-btn[disabled] {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  /* VIDEO CARD */
+  .lesson-video-card {
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000000;
+    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18);
+  }
+
+  .lesson-video-card video,
+  .lesson-video-card iframe {
+    width: 100%;
+    display: block;
+    border: none;
+  }
+
+  .lesson-video-placeholder {
+    padding: 24px 18px;
+    color: #e5e7eb;
+    font-size: 13px;
+  }
+
+  /* NOTES CARD */
+  .lesson-notes-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+  }
+
+  .lesson-notes-title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .lesson-notes-text p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #4b5563;
+  }
+
+  /* NAV ROW */
+  .lesson-nav-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .lesson-nav-link {
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    text-align: center;
+    flex: 0 0 auto;
+  }
+
+  .lesson-nav-link--ghost {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+  }
+
+  .lesson-nav-row span {
+    flex: 1;
+  }
+
+  /* OUTLINE CARD */
+  .lesson-outline-card {
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.06);
+  }
+
+  .outline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .outline-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .outline-count {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  .outline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .outline-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #111827;
+    background: #f9fafb;
+  }
+
+  .outline-item--current {
+    background: #eef2ff;
+    box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6);
+  }
+
+  .outline-number {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: #b91c1c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .outline-label-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .outline-label {
+    font-size: 13px;
+  }
+
+  .outline-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #4f46e5;
+  }
+
+  .lesson-bottom-safe {
+    height: 60px;
+  }
+
+  @media (max-width: 720px) {
+    .lesson-screen {
+      padding: 10px 12px 80px;
+    }
+
+    .lesson-nav-row {
+      flex-direction: column;
+    }
+
+    .lesson-nav-row span {
+      display: none;
+    }
+
+    .lesson-nav-link {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+`;

@@ -89,10 +89,10 @@ export default function DashboardPage() {
 
           if (total > 0) {
             const completedLessonIds = new Set(
-              completedForCourse.map((p) => p.lesson_id),
+              completedForCourse.map((p) => p.lesson_id)
             );
             const firstIncomplete = courseLessons.find(
-              (l) => !completedLessonIds.has(l.id),
+              (l) => !completedLessonIds.has(l.id)
             );
             const candidateLesson = firstIncomplete || courseLessons.at(-1);
 
@@ -179,505 +179,458 @@ export default function DashboardPage() {
     (profile?.username && profile.username.trim()) ||
     (profile?.email ? profile.email.split('@')[0] : 'Investor');
 
+  const displayInitial =
+    displayName && displayName.trim()
+      ? displayName.trim()[0].toUpperCase()
+      : 'I';
+
   return (
-    <div className="dash-root">
-      {/* Overview */}
-      <section className="overview-card">
-        <div className="overview-header-row">
-          <div className="overview-header-text">
-            <div className="overview-kicker">
-              IMPERIAL TRAINING • OVERVIEW
-            </div>
-            <div className="overview-welcome">
-              Welcome back, {displayName}{' '}
-              <span role="img" aria-label="crown">
-                👑
-              </span>
-            </div>
+    <div className="dash-page">
+      <div className="dash-inner">
+        {/* HEADER */}
+        <header className="dash-header">
+          <div>
+            <p className="dash-label">Investor training</p>
+            <h1 className="dash-title">Welcome back, {displayName}</h1>
+            <p className="dash-subtitle">Let&apos;s continue where you left off.</p>
           </div>
-        </div>
 
-        <p className="overview-copy">
-          {/* If you want to write under welcome back */}
-        </p>
+          <div className="dash-avatar">
+            <span>{displayInitial}</span>
+          </div>
+        </header>
 
-        <div className="overview-meta-row">
-          {/* Latest noticeboard update */}
-          <div className="overview-meta-block">
-            <div className="overview-meta-label">
-              LATEST NOTICEBOARD UPDATE
-            </div>
+        {/* NOTICEBOARD + BOOK CALL ROW */}
+        <section className="dash-section dash-row-two">
+          <div className="dash-card dash-notice-card">
+            <p className="dash-card-kicker">Latest noticeboard update</p>
+
             {latestPostLoading ? (
-              <div className="overview-meta-value small">Loading…</div>
+              <p className="dash-card-body small">Loading…</p>
             ) : !latestPost ? (
-              <div className="overview-meta-value small">
-                No posts yet. Once an admin adds a noticeboard update, it will
-                appear here.
-              </div>
+              <p className="dash-card-body small">
+                No posts yet. Once an admin adds an update, it will appear here.
+              </p>
             ) : (
               <>
-                <div className="overview-meta-value">{latestPost.title}</div>
-                <div className="overview-meta-sub">
+                <p className="dash-card-title">{latestPost.title}</p>
+                <p className="dash-card-meta">
                   {latestPost.is_pinned ? 'Pinned · ' : ''}
                   {formatDate(latestPost.created_at)}
-                </div>
+                </p>
                 {latestPost.body && (
-                  <div className="overview-meta-snippet">
-                    {latestPost.body.length > 100
-                      ? latestPost.body.slice(0, 100) + '…'
+                  <p className="dash-card-body">
+                    {latestPost.body.length > 80
+                      ? latestPost.body.slice(0, 80) + '…'
                       : latestPost.body}
-                  </div>
+                  </p>
                 )}
-                <div className="overview-meta-link">
-                  <Link href={`/noticeboard/${latestPost.id}`}>
-                    View on noticeboard →
-                  </Link>
-                </div>
+                <Link
+                  href={`/noticeboard/${latestPost.id}`}
+                  className="dash-card-link"
+                >
+                  View on noticeboard →
+                </Link>
               </>
             )}
           </div>
 
-          {/* Book a call – centered CTA */}
-          <div className="overview-book-block">
-            <div className="overview-meta-label">BOOK A CALL</div>
-            <div className="overview-meta-value">
-              Need help with your next investment step?
-            </div>
-            <div className="overview-meta-sub">
-              Choose a time that suits you and speak with our team
-            </div>
+          <div className="dash-card dash-call-card">
+            <p className="dash-card-kicker">Book a call</p>
+            <p className="dash-card-title">Need help with your next step?</p>
+            <p className="dash-card-body">
+              Choose a time that suits you and speak with our team.
+            </p>
             <a
               href={BOOK_CALL_URL}
               target="_blank"
               rel="noreferrer"
-              className="overview-book-btn"
+              className="dash-primary-btn"
             >
               Book a call
             </a>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Continue where you left off */}
-      <section className="resume-card">
-        <div className="resume-left">
-          <div className="resume-kicker">Continue Learning</div>
-          {resumeLesson ? (
-            <>
-              <div className="resume-program">
-                {resumeLesson.courseTitle}
-              </div>
-              <div className="resume-lesson">
-                Lesson – {resumeLesson.lessonTitle}
-              </div>
-            </>
+        {/* CONTINUE LEARNING */}
+        <section className="dash-section">
+          <div className="dash-continue-card">
+            <div>
+              <p className="dash-continue-kicker">Continue learning</p>
+              {resumeLesson ? (
+                <>
+                  <p className="dash-continue-title">
+                    {resumeLesson.courseTitle}
+                  </p>
+                  <p className="dash-continue-sub">
+                    Lesson – {resumeLesson.lessonTitle}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="dash-continue-title">
+                    You haven&apos;t started any lessons yet.
+                  </p>
+                  <p className="dash-continue-sub">
+                    Open a course below to get started.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {resumeLesson ? (
+              <Link
+                href={`/courses/${resumeLesson.courseId}/${resumeLesson.lessonId}`}
+                className="dash-continue-btn"
+              >
+                Resume →
+              </Link>
+            ) : (
+              <Link href="/courses" className="dash-continue-btn">
+                Browse →
+              </Link>
+            )}
+          </div>
+        </section>
+
+        {/* YOUR COURSES */}
+        <section className="dash-section">
+          <div className="dash-section-header">
+            <h2 className="dash-section-title">Your courses</h2>
+          </div>
+
+          {loading && courses.length === 0 ? (
+            <p className="dash-empty-text">Loading courses…</p>
+          ) : courses.length === 0 ? (
+            <p className="dash-empty-text">
+              No courses available yet. Check back soon.
+            </p>
           ) : (
-            <div className="resume-program">
-              You haven&apos;t started any lessons yet.
+            <div className="dash-course-grid">
+              {courses.map((course) => {
+                const stats = getStatsForCourse(course.id);
+                const { totalLessons, completedLessons } = stats;
+                const pct =
+                  totalLessons === 0
+                    ? 0
+                    : Math.round((completedLessons / totalLessons) * 100);
+
+                return (
+                  <Link
+                    key={course.id}
+                    href={`/courses/${course.id}`}
+                    className="dash-course-card"
+                  >
+                    <p className="dash-course-title">{course.title}</p>
+                    <p className="dash-course-subtitle">
+                      {course.description ||
+                        'Training for Imperial Advocates investors.'}
+                    </p>
+
+                    <div className="dash-course-progress-row">
+                      <span className="dash-course-progress-label">
+                        {completedLessons}/{totalLessons} lessons
+                      </span>
+                      <span className="dash-course-progress-pct">
+                        {pct}%
+                      </span>
+                    </div>
+
+                    <div className="dash-course-bar">
+                      <div
+                        className="dash-course-fill"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="resume-right">
-          {resumeLesson ? (
-            <Link
-              href={`/courses/${resumeLesson.courseId}/${resumeLesson.lessonId}`}
-              className="resume-btn"
-            >
-              Resume lesson →
-            </Link>
-          ) : (
-            <Link href="/courses" className="resume-btn">
-              Browse courses →
-            </Link>
-          )}
-        </div>
-      </section>
-
-      {/* Your courses */}
-      <section className="courses-section">
-        <h2 className="section-title">Your courses</h2>
-
-        {loading && courses.length === 0 ? (
-          <p className="courses-empty">Loading courses…</p>
-        ) : courses.length === 0 ? (
-          <p className="courses-empty">
-            No courses available yet. Check back soon.
-          </p>
-        ) : (
-          <div className="courses-grid">
-            {courses.map((course) => {
-              const stats = getStatsForCourse(course.id);
-              const { totalLessons, completedLessons } = stats;
-              const pct =
-                totalLessons === 0
-                  ? 0
-                  : Math.round((completedLessons / totalLessons) * 100);
-
-              return (
-                <Link
-                  key={course.id}
-                  href={`/courses/${course.id}`}
-                  className="course-card"
-                >
-                  <div className="course-tag"></div>
-                  <h3 className="course-title">{course.title}</h3>
-                  <p className="course-subtitle">
-                    {course.description ||
-                      'Training for Imperial Advocates investors.'}
-                  </p>
-
-                  <div className="course-progress-row">
-                    <span className="course-progress-label">
-                      {completedLessons}/{totalLessons} lessons
-                    </span>
-                    <span className="course-progress-pct">{pct}%</span>
-                  </div>
-
-                  <div className="course-progress-bar">
-                    <div
-                      className="course-progress-fill"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-
-                  <div className="course-cta">Open course →</div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </section>
+        {/* space so bottom nav doesn’t cover content */}
+        <div className="dash-bottom-safe" />
+      </div>
 
       <style jsx>{`
-        .dash-root {
-          max-width: 1040px;
-          margin: 0 auto;
-          padding: 16px 16px 80px;
+        .dash-page {
           display: flex;
-          flex-direction: column;
-          gap: 18px;
+          justify-content: center;
         }
 
-        .overview-card {
-  border-radius: 22px;
-  padding: 18px 20px;
-  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
-  color: #ffffff;
-  overflow: hidden;
+        .dash-inner {
+          width: 100%;
+          max-width: 520px;
+          padding: 12px 16px 24px;
+        }
 
-  /* 🔶 subtle gold border */
-  border: 1px solid rgba(246, 231, 184, 0.7);
-  /* optional soft outer glow to make it feel premium */
-  box-shadow:
-    0 0 0 1px rgba(248, 180, 90, 0.25),
-    0 22px 55px rgba(0, 0, 0, 0.9);
-}
-
-        .overview-header-row {
+        .dash-header {
           display: flex;
-          justify-content: flex-start;
-          align-items: flex-start;
-          gap: 12px;
-          margin-bottom: 8px;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
         }
 
-        .overview-header-text {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .overview-kicker {
-          font-size: 11px;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          opacity: 0.85;
-        }
-
-        .overview-welcome {
-          font-size: 20px;
-          font-weight: 600;
-        }
-
-        .overview-copy {
-          margin: 4px 0 12px;
-          font-size: 13px;
-          opacity: 0.95;
-          max-width: 620px;
-        }
-
-        .overview-meta-row {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .overview-meta-block {
-          min-width: 260px;
-          max-width: 620px;
-        }
-
-        .overview-meta-label {
+        .dash-label {
           font-size: 11px;
           text-transform: uppercase;
-          letter-spacing: 0.18em;
-          opacity: 0.9;
+          letter-spacing: 0.16em;
+          color: #a1a6c0;
           margin-bottom: 4px;
         }
 
-        .overview-meta-value {
+        .dash-title {
+          font-size: 22px;
+          font-weight: 700;
+          color: #151827;
+          margin: 0 0 4px;
+        }
+
+        .dash-subtitle {
+          margin: 0;
+          font-size: 13px;
+          color: #9fa4bd;
+        }
+
+        .dash-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          background: #ffffff;
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          color: #151827;
+        }
+
+        .dash-section {
+          margin-bottom: 16px;
+        }
+
+        .dash-row-two {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 12px;
+        }
+
+        .dash-card {
+          background: #ffffff;
+          border-radius: 22px;
+          padding: 14px 14px 16px;
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+        }
+
+        .dash-card-kicker {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: #b0b4c8;
+          margin-bottom: 4px;
+        }
+
+        .dash-card-title {
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
+          color: #181a2c;
+          margin: 0 0 4px;
         }
 
-        .overview-meta-value.small {
-          font-size: 12px;
-          opacity: 0.85;
-        }
-
-        .overview-meta-sub {
-          margin-top: 2px;
+        .dash-card-meta {
           font-size: 11px;
-          opacity: 0.9;
+          color: #a1a6c0;
+          margin: 0 0 4px;
         }
 
-        .overview-meta-snippet {
-          margin-top: 4px;
+        .dash-card-body {
           font-size: 12px;
-          opacity: 0.9;
+          color: #8c90a8;
+          margin: 0;
         }
 
-        .overview-meta-link {
-          margin-top: 4px;
-          font-size: 11px;
+        .dash-card-body.small {
+          font-size: 12px;
         }
 
-        .overview-meta-link a {
-          color: #fef7dd;
+        .dash-card-link {
+          display: inline-block;
+          margin-top: 6px;
+          font-size: 12px;
+          color: #555fe0;
           text-decoration: none;
         }
 
-        /* centred Book a call block */
-        .overview-book-block {
-          max-width: 420px;
-          margin: 0 auto;
-          text-align: center;
+        .dash-card-link:hover {
+          text-decoration: underline;
         }
 
-        .overview-book-btn {
+        .dash-call-card {
+          text-align: left;
+        }
+
+        .dash-primary-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           margin-top: 10px;
-          padding: 10px 22px;
+          padding: 8px 16px;
           border-radius: 999px;
-          background: linear-gradient(135deg, #d94841, #ff8b5f);
-          color: #ffffff;
-          font-size: 14px;
+          border: none;
+          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          font-size: 13px;
           font-weight: 600;
+          color: #ffffff;
           text-decoration: none;
-          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.95);
-          transition: transform 0.08s ease-out, box-shadow 0.12s ease-out;
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
         }
 
-        .overview-book-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 20px 44px rgba(0, 0, 0, 1);
+        /* Continue card */
+
+        .dash-continue-card {
+          padding: 16px 18px;
+          border-radius: 26px;
+          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
         }
 
-        /* Resume card – same gradient */
-        .resume-card {
-          border-radius: 20px;
-          padding: 16px 20px;
-          background: linear-gradient(90deg, #f4a261, #e76f51, #1b1f6b);
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+        .dash-continue-kicker {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          opacity: 0.9;
+          margin-bottom: 4px;
+        }
+
+        .dash-continue-title {
+          font-size: 15px;
+          font-weight: 600;
+          margin: 0 0 2px;
+        }
+
+        .dash-continue-sub {
+          font-size: 13px;
+          opacity: 0.95;
+          margin: 0;
+        }
+
+        .dash-continue-btn {
+          border-radius: 999px;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.18);
+          border: none;
+          font-size: 13px;
+          font-weight: 600;
+          color: #ffffff;
+          text-decoration: none;
+          backdrop-filter: blur(8px);
+          white-space: nowrap;
+        }
+
+        /* Courses */
+
+        .dash-section-header {
           display: flex;
           justify-content: space-between;
-          gap: 16px;
           align-items: center;
-          overflow: hidden;
+          margin-bottom: 8px;
         }
 
-        .resume-left {
+        .dash-section-title {
+          font-size: 17px;
+          font-weight: 600;
+          margin: 0;
+          color: #181a2c;
+        }
+
+        .dash-empty-text {
+          margin: 4px 0 0;
+          font-size: 13px;
+          color: #9fa4bd;
+        }
+
+        .dash-course-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .dash-course-card {
+          text-decoration: none;
+          background: #ffffff;
+          border-radius: 20px;
+          padding: 12px 12px 14px;
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
 
-        .resume-kicker {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.14em;
-          opacity: 0.9;
-        }
-
-        .resume-program {
-          font-size: 16px;
-          font-weight: 600;
-        }
-
-        .resume-lesson {
-          font-size: 13px;
-          opacity: 0.95;
-        }
-
-        .resume-right {
-          flex-shrink: 0;
-        }
-
-        .resume-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 10px 18px;
-          border-radius: 999px;
-          background: rgba(2, 3, 24, 0.96);
-          color: #fef7dd;
+        .dash-course-title {
           font-size: 14px;
           font-weight: 600;
-          text-decoration: none;
-          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
-          transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
-        }
-
-        .resume-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 18px 42px rgba(0, 0, 0, 0.95);
-        }
-
-        /* Courses section */
-        .courses-section {
-          border-radius: 20px;
-          padding: 16px 20px 18px;
-          background: rgba(3, 6, 40, 0.98);
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-        }
-
-        .section-title {
-          margin: 0 0 10px;
-          font-size: 16px;
-        }
-
-        .courses-empty {
+          color: #181a2c;
           margin: 0;
-          font-size: 13px;
-          opacity: 0.85;
         }
 
-        .courses-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-          gap: 14px;
-        }
-
-        .course-card {
-          text-decoration: none;
-          color: #ffffff;
-          padding: 14px 14px 16px;
-          border-radius: 16px;
-          background: radial-gradient(
-            circle at top left,
-            #1d2a8c 0%,
-            #050a3a 70%
-          );
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          transition: transform 0.08s ease-out, box-shadow 0.12s ease-out;
-        }
-
-        .course-card:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 22px 56px rgba(0, 0, 0, 0.95);
-        }
-
-        .course-tag {
-          display: inline-flex;
-          padding: 4px 10px;
-          border-radius: 999px;
-          font-size: 10px;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          background: rgba(0, 0, 0, 0.35);
-          opacity: 0.9;
-          align-self: flex-start;
-        }
-
-        .course-title {
-          margin: 0;
-          font-size: 15px;
-          font-weight: 600;
-        }
-
-        .course-subtitle {
-          margin: 0;
+        .dash-course-subtitle {
           font-size: 12px;
-          opacity: 0.9;
+          color: #9fa4bd;
+          margin: 0 0 6px;
         }
 
-        .course-progress-row {
-          margin-top: 4px;
+        .dash-course-progress-row {
           display: flex;
           justify-content: space-between;
           font-size: 11px;
-          opacity: 0.9;
+          color: #a1a6c0;
+          margin-bottom: 4px;
         }
 
-        .course-progress-bar {
-          margin-top: 4px;
+        .dash-course-bar {
+          width: 100%;
           height: 6px;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.12);
+          background: #eef0fb;
           overflow: hidden;
         }
 
-        .course-progress-fill {
+        .dash-course-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #f8b45a, #ff8b5f);
+          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
         }
 
-        .course-cta {
-          margin-top: 8px;
-          font-size: 12px;
-          opacity: 0.95;
+        .dash-bottom-safe {
+          height: 72px;
         }
 
         @media (max-width: 720px) {
-          .dash-root {
-            padding: 12px 12px 32px;
+          .dash-inner {
+            padding: 10px 12px 12px;
           }
 
-          .overview-card,
-          .resume-card,
-          .courses-section {
-            padding: 14px 14px 16px;
+          .dash-row-two {
+            grid-template-columns: 1fr;
           }
 
-          .overview-meta-row {
-            gap: 16px;
-          }
-
-          .overview-book-block {
-            max-width: 100%;
-          }
-
-          .resume-card {
+          .dash-continue-card {
             flex-direction: column;
             align-items: flex-start;
           }
 
-          .resume-right {
-            width: 100%;
+          .dash-course-grid {
+            grid-template-columns: 1fr;
           }
 
-          .resume-btn {
-            width: 100%;
-            justify-content: center;
+          .dash-bottom-safe {
+            height: 80px;
           }
         }
       `}</style>
