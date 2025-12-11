@@ -35,8 +35,10 @@ export default function LayoutShell({ children }) {
           font-family: inherit;
           display: flex;
           flex-direction: column;
-          padding-top: 86px; /* header height */
-          padding-bottom: 80px; /* bottom nav height + safe area */
+          /* Header height + safe-area at the top */
+          padding-top: calc(86px + env(safe-area-inset-top, 0px));
+          /* Bottom nav height + safe-area at the bottom */
+          padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         }
 
         .ia-header {
@@ -44,10 +46,11 @@ export default function LayoutShell({ children }) {
           top: 0;
           left: 0;
           right: 0;
-          height: 86px;
+          /* Header + safe-area so content sits below the island */
+          height: calc(86px + env(safe-area-inset-top, 0px));
           z-index: 40;
           display: flex;
-          align-items: center;
+          align-items: flex-end; /* so brand sits at bottom of header area */
           justify-content: center;
           background: linear-gradient(
             to bottom,
@@ -56,6 +59,7 @@ export default function LayoutShell({ children }) {
             rgba(247, 246, 252, 0.78) 100%
           );
           border-bottom: 1px solid rgba(203, 209, 234, 0.7);
+          padding-top: env(safe-area-inset-top, 0px);
         }
 
         .ia-header-bar {
@@ -115,18 +119,33 @@ export default function LayoutShell({ children }) {
           padding: 0 0 32px;
         }
 
-        @media (max-width: 720px) {
+                @media (max-width: 720px) {
           .ia-shell {
-            padding-top: 82px;
-            padding-bottom: calc(84px + env(safe-area-inset-bottom));
+            padding-top: calc(82px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
           }
 
           .ia-header {
-            height: 82px;
+            height: calc(82px + env(safe-area-inset-top, 0px));
           }
 
+          /* On mobile, let the brand sit naturally at the bottom of the header,
+             instead of absolutely centred under the island */
           .ia-header-bar {
             padding: 8px 12px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+          }
+
+          .ia-header-brand {
+            position: static;
+            transform: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px; /* small breathing room above content */
           }
 
           .ia-header-brand img {
