@@ -45,68 +45,91 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-inner">
+    <div className="auth-safe">
+      <div className="login-page">
+        <div className="login-inner">
+          {/* IA Header */}
+          <header className="login-header">
+            <img src="/ia-logo.png" alt="IA" className="header-logo" />
+            <div className="header-text">
+              <h1 className="header-title">IMPERIAL ADVOCATES</h1>
+              <p className="header-sub">
+                Investor Training &amp; Client Portal
+              </p>
+            </div>
+          </header>
 
-        {/* IA Header */}
-        <header className="login-header">
-          <img src="/ia-logo.png" alt="IA" className="header-logo" />
-          <div className="header-text">
-            <h1 className="header-title">IMPERIAL ADVOCATES</h1>
-            <p className="header-sub">Investor Training & Client Portal</p>
-          </div>
-        </header>
+          {/* Card */}
+          <main className="login-card">
+            <h2 className="card-title">Welcome back</h2>
+            <p className="card-subtitle">
+              Enter your details to access your Imperial Advocates portal.
+            </p>
 
-        {/* Card */}
-        <main className="login-card">
-          <h2 className="card-title">Welcome back</h2>
-          <p className="card-subtitle">
-            Enter your details to access your Imperial Advocates portal.
-          </p>
+            <form onSubmit={handleLogin} className="form">
+              <label className="field-label">Email</label>
+              <input
+                className="field-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
 
-          <form onSubmit={handleLogin} className="form">
+              <label className="field-label">Password</label>
+              <input
+                className="field-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+              />
 
-            <label className="field-label">Email</label>
-            <input
-              className="field-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
+              {error && <p className="error-text">{error}</p>}
 
-            <label className="field-label">Password</label>
-            <input
-              className="field-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-            />
+              <button
+                type="submit"
+                className="primary-btn"
+                disabled={loading}
+              >
+                {loading ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
 
-            {error && <p className="error-text">{error}</p>}
-
-            <button type="submit" className="primary-btn" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign in'}
-            </button>
-          </form>
-
-          <div className="footer-row">
-            <span>Don’t have an account?</span>
-            <Link href="/signup" className="footer-link">
-              Create one
-            </Link>
-          </div>
-        </main>
+            <div className="footer-row">
+              <span>Don’t have an account?</span>
+              <Link href="/signup" className="footer-link">
+                Create one
+              </Link>
+            </div>
+          </main>
+        </div>
       </div>
 
       <style jsx>{`
-        .login-page {
+        /* SAFE AREA WRAPPER – stops clash with Dynamic Island / notch */
+        .auth-safe {
           min-height: 100vh;
+          padding-top: calc(32px + env(safe-area-inset-top, 0px));
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+          background: #f5f7fb;
+          display: flex;
+          justify-content: center;
+        }
+
+        @media (max-width: 720px) {
+          .auth-safe {
+            padding-top: calc(40px + env(safe-area-inset-top, 0px));
+          }
+        }
+
+        .login-page {
+          min-height: 100%;
           background: #f5f7fb;
           display: flex;
           justify-content: center;
           padding: 24px 16px;
+          width: 100%;
         }
 
         .login-inner {
@@ -175,6 +198,12 @@ export default function LoginPage() {
         }
 
         /* INPUTS — match profile/dashboard */
+        .form {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
         .field-label {
           margin-bottom: 4px;
           font-size: 11px;

@@ -35,10 +35,10 @@ export default function LayoutShell({ children }) {
           font-family: inherit;
           display: flex;
           flex-direction: column;
-          /* smaller header + safe area */
+          /* header + safe area */
           padding-top: calc(60px + env(safe-area-inset-top, 0px));
-          /* bottom nav + safe area */
-          padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+          /* ✅ only a SMALL buffer above the bottom nav */
+          padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
         }
 
         .ia-header {
@@ -46,7 +46,7 @@ export default function LayoutShell({ children }) {
           top: 0;
           left: 0;
           right: 0;
-          height: calc(64px + env(safe-area-inset-top, 0px));
+          height: calc(60px + env(safe-area-inset-top, 0px));
           z-index: 40;
           display: flex;
           align-items: flex-end;
@@ -65,12 +65,11 @@ export default function LayoutShell({ children }) {
           width: 100%;
           max-width: 1080px;
           margin: 0 auto;
-          padding: 6px 16px 10px;
+          padding: 4px 16px 8px;
           display: flex;
           justify-content: center;
         }
 
-        /* Brand pill is now just centered in the bar, not absolutely positioned */
         .ia-header-brand {
           display: inline-flex;
           align-items: center;
@@ -78,7 +77,7 @@ export default function LayoutShell({ children }) {
         }
 
         .ia-header-brand img {
-          height: 40px;
+          height: 36px;
           width: auto;
           border-radius: 12px;
           box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
@@ -113,13 +112,14 @@ export default function LayoutShell({ children }) {
         .ia-main-inner {
           max-width: 1080px;
           margin: 0 auto;
-          padding: 0 0 32px;
+          /* ✅ no extra bottom padding – pages handle their own spacing */
+          padding: 0 16px 0;
         }
 
         @media (max-width: 720px) {
           .ia-shell {
             padding-top: calc(60px + env(safe-area-inset-top, 0px));
-            padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
           }
 
           .ia-header {
@@ -131,7 +131,7 @@ export default function LayoutShell({ children }) {
           }
 
           .ia-header-brand img {
-            height: 36px;
+            height: 34px;
           }
 
           .ia-header-title {
@@ -143,12 +143,12 @@ export default function LayoutShell({ children }) {
           }
 
           .ia-main-inner {
-            padding: 0 0 28px;
+            padding: 0 12px 0;
           }
         }
       `}</style>
 
-      {/* Global base styles (same as before, but keep them here) */}
+      {/* Global base styles */}
       <style jsx global>{`
         html,
         body {

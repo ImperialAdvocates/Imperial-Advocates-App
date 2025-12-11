@@ -14,7 +14,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Simple fallback username generator
   const generateUsername = (email) =>
     email
       .split('@')[0]
@@ -33,7 +32,6 @@ export default function SignupPage() {
     try {
       setLoading(true);
 
-      // 1) Create Supabase Auth user
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email: email.trim(),
@@ -62,12 +60,10 @@ export default function SignupPage() {
         throw new Error('User not returned from Supabase.');
       }
 
-      // 2) Decide username
       const username = fullName
         ? fullName.trim().replace(/\s+/g, '_').toLowerCase()
         : generateUsername(email);
 
-      // 3) Upsert profile row
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert(
@@ -93,7 +89,6 @@ export default function SignupPage() {
         throw profileError;
       }
 
-      // Success → go to dashboard
       router.push('/dashboard');
     } catch (err) {
       console.error('Signup error:', err);
@@ -106,81 +101,101 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-inner">
-        {/* IA Header – same as login */}
-        <header className="login-header">
-          <img src="/ia-logo.png" alt="IA" className="header-logo" />
-          <div className="header-text">
-            <h1 className="header-title">IMPERIAL ADVOCATES</h1>
-            <p className="header-sub">Investor Training &amp; Client Portal</p>
-          </div>
-        </header>
+    <div className="auth-safe">
+      <div className="login-page">
+        <div className="login-inner">
+          {/* IA Header – same as login */}
+          <header className="login-header">
+            <img src="/ia-logo.png" alt="IA" className="header-logo" />
+            <div className="header-text">
+              <h1 className="header-title">IMPERIAL ADVOCATES</h1>
+              <p className="header-sub">
+                Investor Training &amp; Client Portal
+              </p>
+            </div>
+          </header>
 
-        {/* Card – same shell as login, different copy/fields */}
-        <main className="login-card">
-          <h2 className="card-title">Create your account</h2>
-          <p className="card-subtitle">
-            Enter your details to create your Imperial Advocates portal login.
-          </p>
+          {/* Card */}
+          <main className="login-card">
+            <h2 className="card-title">Create your account</h2>
+            <p className="card-subtitle">
+              Enter your details to create your Imperial Advocates portal login.
+            </p>
 
-          <form onSubmit={handleSignup} className="form">
-            <label className="field-label">Full name</label>
-            <input
-              className="field-input"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Akshat Sharma"
-            />
+            <form onSubmit={handleSignup} className="form">
+              <label className="field-label">Full name</label>
+              <input
+                className="field-input"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Akshat Sharma"
+              />
 
-            <label className="field-label">Email</label>
-            <input
-              className="field-input"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
+              <label className="field-label">Email</label>
+              <input
+                className="field-input"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
 
-            <label className="field-label">Password</label>
-            <input
-              className="field-input"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choose a password"
-            />
+              <label className="field-label">Password</label>
+              <input
+                className="field-input"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Choose a password"
+              />
 
-            {error && <p className="error-text">{error}</p>}
+              {error && <p className="error-text">{error}</p>}
 
-            <button
-              type="submit"
-              className="primary-btn"
-              disabled={loading}
-            >
-              {loading ? 'Creating account…' : 'Sign up'}
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="primary-btn"
+                disabled={loading}
+              >
+                {loading ? 'Creating account…' : 'Sign up'}
+              </button>
+            </form>
 
-          <div className="footer-row">
-            <span>Already have an account?</span>
-            <Link href="/" className="footer-link">
-              Sign in
-            </Link>
-          </div>
-        </main>
+            <div className="footer-row">
+              <span>Already have an account?</span>
+              <Link href="/" className="footer-link">
+                Sign in
+              </Link>
+            </div>
+          </main>
+        </div>
       </div>
 
       <style jsx>{`
-        .login-page {
+        .auth-safe {
           min-height: 100vh;
+          padding-top: calc(32px + env(safe-area-inset-top, 0px));
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+          background: #f5f7fb;
+          display: flex;
+          justify-content: center;
+        }
+
+        @media (max-width: 720px) {
+          .auth-safe {
+            padding-top: calc(40px + env(safe-area-inset-top, 0px));
+          }
+        }
+
+        .login-page {
+          min-height: 100%;
           background: #f5f7fb;
           display: flex;
           justify-content: center;
           padding: 24px 16px;
+          width: 100%;
         }
 
         .login-inner {
@@ -191,7 +206,6 @@ export default function SignupPage() {
           gap: 20px;
         }
 
-        /* HEADER — matches login/dashboard */
         .login-header {
           display: flex;
           align-items: center;
@@ -227,7 +241,6 @@ export default function SignupPage() {
           color: #6b7280;
         }
 
-        /* CARD */
         .login-card {
           background: #ffffff;
           border-radius: 22px;
@@ -248,7 +261,6 @@ export default function SignupPage() {
           color: #6b7280;
         }
 
-        /* INPUTS */
         .form {
           display: flex;
           flex-direction: column;
@@ -287,7 +299,6 @@ export default function SignupPage() {
           color: #dc2626;
         }
 
-        /* BUTTON — same gradient as login */
         .primary-btn {
           margin-top: 6px;
           width: 100%;
@@ -298,14 +309,13 @@ export default function SignupPage() {
           font-weight: 600;
           background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
           color: #ffffff;
-          box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
         }
 
         .primary-btn[disabled] {
           opacity: 0.7;
         }
 
-        /* FOOTER */
         .footer-row {
           margin-top: 14px;
           font-size: 13px;
