@@ -36,7 +36,7 @@ export default function LayoutShell({ children }) {
           display: flex;
           flex-direction: column;
           /* smaller header + safe area */
-          padding-top: calc(64px + env(safe-area-inset-top, 0px));
+          padding-top: calc(60px + env(safe-area-inset-top, 0px));
           /* bottom nav + safe area */
           padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         }

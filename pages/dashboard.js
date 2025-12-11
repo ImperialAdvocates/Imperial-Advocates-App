@@ -608,7 +608,7 @@ export default function DashboardPage() {
         }
 
         .dash-bottom-safe {
-          height: 72px;
+          height: 0px;
         }
 
         @media (max-width: 720px) {
