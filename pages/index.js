@@ -25,11 +25,10 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      const { data, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
       if (authError) {
         setError(authError.message || 'Unable to sign in.');
@@ -45,91 +44,75 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-safe">
-      <div className="login-page">
-        <div className="login-inner">
-          {/* IA Header */}
-          <header className="login-header">
-            <img src="/ia-logo.png" alt="IA" className="header-logo" />
-            <div className="header-text">
-              <h1 className="header-title">IMPERIAL ADVOCATES</h1>
-              <p className="header-sub">
-                Investor Training &amp; Client Portal
-              </p>
-            </div>
-          </header>
+    <div className="login-page">
+      <div className="login-inner">
+        {/* IA Header card */}
+        <header className="login-header">
+          <img src="/ia-logo.png" alt="IA" className="header-logo" />
+          <div className="header-text">
+            <h1 className="header-title">IMPERIAL ADVOCATES</h1>
+            <p className="header-sub">Investor Training &amp; Client Portal</p>
+          </div>
+        </header>
 
-          {/* Card */}
-          <main className="login-card">
-            <h2 className="card-title">Welcome back</h2>
-            <p className="card-subtitle">
-              Enter your details to access your Imperial Advocates portal.
-            </p>
+        {/* Login card */}
+        <main className="login-card">
+          <h2 className="card-title">Welcome back</h2>
+          <p className="card-subtitle">
+            Enter your details to access your Imperial Advocates portal.
+          </p>
 
-            <form onSubmit={handleLogin} className="form">
-              <label className="field-label">Email</label>
-              <input
-                className="field-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              />
+          <form onSubmit={handleLogin} className="form">
+            <label className="field-label">Email</label>
+            <input
+              className="field-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
 
-              <label className="field-label">Password</label>
-              <input
-                className="field-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-              />
+            <label className="field-label">Password</label>
+            <input
+              className="field-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+            />
 
-              {error && <p className="error-text">{error}</p>}
+            {error && <p className="error-text">{error}</p>}
 
-              <button
-                type="submit"
-                className="primary-btn"
-                disabled={loading}
-              >
-                {loading ? 'Signing in…' : 'Sign in'}
-              </button>
-            </form>
+            <button
+              type="submit"
+              className="primary-btn"
+              disabled={loading}
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
 
-            <div className="footer-row">
-              <span>Don’t have an account?</span>
-              <Link href="/signup" className="footer-link">
-                Create one
-              </Link>
-            </div>
-          </main>
-        </div>
+          <div className="footer-row">
+            <span>Don&apos;t have an account?</span>
+            <Link href="/signup" className="footer-link">
+              Create one
+            </Link>
+          </div>
+        </main>
       </div>
 
       <style jsx>{`
-        /* SAFE AREA WRAPPER – stops clash with Dynamic Island / notch */
-        .auth-safe {
-          min-height: 100vh;
-          padding-top: calc(32px + env(safe-area-inset-top, 0px));
-          padding-bottom: env(safe-area-inset-bottom, 0px);
-          background: #f5f7fb;
-          display: flex;
-          justify-content: center;
-        }
-
-        @media (max-width: 720px) {
-          .auth-safe {
-            padding-top: calc(40px + env(safe-area-inset-top, 0px));
-          }
-        }
-
+        /* Full-screen background with safe-area at the top so the
+           logo never clashes with the Dynamic Island / notch */
         .login-page {
-          min-height: 100%;
+          min-height: 100vh;
           background: #f5f7fb;
           display: flex;
           justify-content: center;
-          padding: 24px 16px;
-          width: 100%;
+          align-items: flex-start;
+          padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 24px;
         }
 
         .login-inner {
@@ -137,15 +120,15 @@ export default function LoginPage() {
           max-width: 420px;
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
         }
 
-        /* HEADER — matches dashboard */
+        /* HEADER — pill with logo, spaced nicely under the status bar */
         .login-header {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 12px 16px;
+          padding: 10px 16px;
           background: #ffffff;
           border-radius: 16px;
           box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
@@ -168,6 +151,7 @@ export default function LoginPage() {
           font-size: 14px;
           font-weight: 700;
           color: #151827;
+          letter-spacing: 0.08em;
         }
 
         .header-sub {
@@ -176,11 +160,11 @@ export default function LoginPage() {
           color: #6b7280;
         }
 
-        /* CARD */
+        /* LOGIN CARD */
         .login-card {
           background: #ffffff;
           border-radius: 22px;
-          padding: 20px 22px;
+          padding: 20px 22px 22px;
           box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
         }
 
@@ -197,7 +181,6 @@ export default function LoginPage() {
           color: #6b7280;
         }
 
-        /* INPUTS — match profile/dashboard */
         .form {
           display: flex;
           flex-direction: column;
@@ -236,7 +219,6 @@ export default function LoginPage() {
           color: #dc2626;
         }
 
-        /* BUTTON — same gradient as dashboard */
         .primary-btn {
           margin-top: 6px;
           width: 100%;
@@ -245,7 +227,7 @@ export default function LoginPage() {
           padding: 11px 16px;
           font-size: 15px;
           font-weight: 600;
-          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          background: linear-gradient(135deg, #1d2cff, #0a0f4f);
           color: #ffffff;
           box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
         }
@@ -254,7 +236,6 @@ export default function LoginPage() {
           opacity: 0.7;
         }
 
-        /* FOOTER */
         .footer-row {
           margin-top: 14px;
           font-size: 13px;
@@ -271,6 +252,16 @@ export default function LoginPage() {
 
         .footer-link:hover {
           text-decoration: underline;
+        }
+
+        @media (max-width: 720px) {
+          .login-page {
+            padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 20px;
+          }
+
+          .login-card {
+            padding: 18px 18px 20px;
+          }
         }
       `}</style>
     </div>

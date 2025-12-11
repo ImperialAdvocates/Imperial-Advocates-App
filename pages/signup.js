@@ -8,17 +8,14 @@ export default function SignupPage() {
   const router = useRouter();
 
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError]     = useState('');
 
   const generateUsername = (email) =>
-    email
-      .split('@')[0]
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toLowerCase();
+    email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -32,6 +29,7 @@ export default function SignupPage() {
     try {
       setLoading(true);
 
+      // 1) Create auth user
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email: email.trim(),
@@ -44,173 +42,140 @@ export default function SignupPage() {
         });
 
       if (signUpError) {
-        if (
-          typeof signUpError.message === 'string' &&
-          signUpError.message.toLowerCase().includes('already registered')
-        ) {
-          throw new Error(
-            'An account with this email already exists. Please sign in instead.'
-          );
+        const msg = signUpError.message?.toLowerCase() || '';
+        if (msg.includes('already registered')) {
+          throw new Error('An account with this email already exists.');
         }
         throw signUpError;
       }
 
       const user = signUpData?.user;
-      if (!user) {
-        throw new Error('User not returned from Supabase.');
-      }
+      if (!user) throw new Error('User not returned from Supabase.');
 
-      const username = fullName
-        ? fullName.trim().replace(/\s+/g, '_').toLowerCase()
-        : generateUsername(email);
+      // 2) Username
+      const username =
+        fullName.trim().replace(/\s+/g, '_').toLowerCase() ||
+        generateUsername(email);
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert(
-          {
-            id: user.id,
-            email: email.trim(),
-            username,
-            full_name: fullName || null,
-            role: 'user',
-          },
-          { onConflict: 'id' }
-        );
+      // 3) Profile row
+      const { error: profileError } = await supabase.from('profiles').upsert(
+        {
+          id: user.id,
+          email: email.trim(),
+          username,
+          full_name: fullName,
+          role: 'user',
+        },
+        { onConflict: 'id' }
+      );
 
       if (profileError) {
-        if (
-          profileError.code === '23505' ||
-          (profileError.message || '').toLowerCase().includes('duplicate')
-        ) {
-          throw new Error(
-            'A profile with this email already exists. Please sign in instead.'
-          );
+        const msg = profileError.message?.toLowerCase() || '';
+        if (msg.includes('duplicate')) {
+          throw new Error('A profile already exists. Please sign in.');
         }
         throw profileError;
       }
 
       router.push('/dashboard');
     } catch (err) {
-      console.error('Signup error:', err);
-      setError(
-        err.message || 'Something went wrong while creating your account.'
-      );
+      console.error(err);
+      setError(err.message || 'Something went wrong creating your account.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="auth-safe">
-      <div className="login-page">
-        <div className="login-inner">
-          {/* IA Header – same as login */}
-          <header className="login-header">
-            <img src="/ia-logo.png" alt="IA" className="header-logo" />
-            <div className="header-text">
-              <h1 className="header-title">IMPERIAL ADVOCATES</h1>
-              <p className="header-sub">
-                Investor Training &amp; Client Portal
-              </p>
-            </div>
-          </header>
+    <div className="signup-page">
+      <div className="signup-inner">
 
-          {/* Card */}
-          <main className="login-card">
-            <h2 className="card-title">Create your account</h2>
-            <p className="card-subtitle">
-              Enter your details to create your Imperial Advocates portal login.
-            </p>
+        {/* HEADER – consistent with login */}
+        <header className="signup-header">
+          <img src="/ia-logo.png" alt="IA" className="header-logo" />
+          <div className="header-text">
+            <h1 className="header-title">IMPERIAL ADVOCATES</h1>
+            <p className="header-sub">Investor Training &amp; Client Portal</p>
+          </div>
+        </header>
 
-            <form onSubmit={handleSignup} className="form">
-              <label className="field-label">Full name</label>
-              <input
-                className="field-input"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Akshat Sharma"
-              />
+        {/* CARD */}
+        <main className="signup-card">
+          <h2 className="card-title">Create your account</h2>
+          <p className="card-subtitle">
+            Enter your details to create your Imperial Advocates portal login.
+          </p>
 
-              <label className="field-label">Email</label>
-              <input
-                className="field-input"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              />
+          <form onSubmit={handleSignup} className="form">
+            <label className="field-label">Full name</label>
+            <input
+              className="field-input"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Akshat Sharma"
+            />
 
-              <label className="field-label">Password</label>
-              <input
-                className="field-input"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Choose a password"
-              />
+            <label className="field-label">Email</label>
+            <input
+              className="field-input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
 
-              {error && <p className="error-text">{error}</p>}
+            <label className="field-label">Password</label>
+            <input
+              className="field-input"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Choose a password"
+            />
 
-              <button
-                type="submit"
-                className="primary-btn"
-                disabled={loading}
-              >
-                {loading ? 'Creating account…' : 'Sign up'}
-              </button>
-            </form>
+            {error && <p className="error-text">{error}</p>}
 
-            <div className="footer-row">
-              <span>Already have an account?</span>
-              <Link href="/" className="footer-link">
-                Sign in
-              </Link>
-            </div>
-          </main>
-        </div>
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? 'Creating account…' : 'Sign up'}
+            </button>
+          </form>
+
+          <div className="footer-row">
+            <span>Already have an account?</span>
+            <Link href="/" className="footer-link">
+              Sign in
+            </Link>
+          </div>
+        </main>
       </div>
 
       <style jsx>{`
-        .auth-safe {
+        /* Matches login spacing + safe-area */
+        .signup-page {
           min-height: 100vh;
-          padding-top: calc(32px + env(safe-area-inset-top, 0px));
-          padding-bottom: env(safe-area-inset-bottom, 0px);
           background: #f5f7fb;
           display: flex;
           justify-content: center;
+          align-items: flex-start;
+          padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 24px;
         }
 
-        @media (max-width: 720px) {
-          .auth-safe {
-            padding-top: calc(40px + env(safe-area-inset-top, 0px));
-          }
-        }
-
-        .login-page {
-          min-height: 100%;
-          background: #f5f7fb;
-          display: flex;
-          justify-content: center;
-          padding: 24px 16px;
-          width: 100%;
-        }
-
-        .login-inner {
+        .signup-inner {
           width: 100%;
           max-width: 420px;
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
         }
 
-        .login-header {
+        .signup-header {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 12px 16px;
+          padding: 10px 16px;
           background: #ffffff;
           border-radius: 16px;
           box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
@@ -233,6 +198,7 @@ export default function SignupPage() {
           font-size: 14px;
           font-weight: 700;
           color: #151827;
+          letter-spacing: 0.08em;
         }
 
         .header-sub {
@@ -241,10 +207,11 @@ export default function SignupPage() {
           color: #6b7280;
         }
 
-        .login-card {
+        /* CARD */
+        .signup-card {
           background: #ffffff;
           border-radius: 22px;
-          padding: 20px 22px;
+          padding: 20px 22px 22px;
           box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
         }
 
@@ -307,7 +274,7 @@ export default function SignupPage() {
           padding: 11px 16px;
           font-size: 15px;
           font-weight: 600;
-          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          background: linear-gradient(135deg, #1d2cff, #0a0f4f);
           color: #ffffff;
           box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
         }
@@ -332,6 +299,16 @@ export default function SignupPage() {
 
         .footer-link:hover {
           text-decoration: underline;
+        }
+
+        @media (max-width: 720px) {
+          .signup-page {
+            padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 20px;
+          }
+
+          .signup-card {
+            padding: 18px 18px 20px;
+          }
         }
       `}</style>
     </div>

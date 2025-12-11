@@ -113,7 +113,7 @@ export default function LayoutShell({ children }) {
           max-width: 1080px;
           margin: 0 auto;
           /* ✅ no extra bottom padding – pages handle their own spacing */
-          padding: 0 16px 0;
+          padding: 0 0 calc(32px + env(safe-area-inset-bottom, 0px));
         }
 
         @media (max-width: 720px) {
