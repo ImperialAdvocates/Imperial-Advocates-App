@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -11,36 +12,46 @@
   }
 }
 
+/* Prevent horizontal scroll + base layout */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-}
-
-body {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  padding: 0;
+  margin: 0;
   color: var(--foreground);
   background: var(--background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Help reduce double-tap zoom behaviour */
+  touch-action: manipulation;
 }
 
-html, body {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-}
-
+/* Reset box model */
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
+/* Links */
 a {
   color: inherit;
   text-decoration: none;
 }
 
+/* Ensure dark mode support if you ever use it */
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
+}
+
+/* 🔑 Key fix: stop iOS auto-zooming on inputs */
+input,
+textarea,
+select,
+button {
+  font-size: 16px; /* iOS won't auto-zoom when >= 16px */
 }
