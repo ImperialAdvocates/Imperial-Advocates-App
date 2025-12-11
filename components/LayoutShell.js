@@ -30,17 +30,14 @@ export default function LayoutShell({ children }) {
       <style jsx>{`
         .ia-shell {
           min-height: 100vh;
-          width: 100%;
-          max-width: 100%;
-          overflow-x: hidden;
           background: #f5f7fb;
           color: #111320;
           font-family: inherit;
           display: flex;
           flex-direction: column;
-          /* Header height + safe-area at the top */
-          padding-top: calc(86px + env(safe-area-inset-top, 0px));
-          /* Bottom nav height + safe-area at the bottom */
+          /* smaller header + safe area */
+          padding-top: calc(64px + env(safe-area-inset-top, 0px));
+          /* bottom nav + safe area */
           padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         }
 
@@ -49,12 +46,12 @@ export default function LayoutShell({ children }) {
           top: 0;
           left: 0;
           right: 0;
-          /* Header + safe-area so content sits below the island */
-          height: calc(86px + env(safe-area-inset-top, 0px));
+          height: calc(64px + env(safe-area-inset-top, 0px));
           z-index: 40;
           display: flex;
-          align-items: flex-end; /* brand sits at bottom of header area */
+          align-items: flex-end;
           justify-content: center;
+          padding-top: env(safe-area-inset-top, 0px);
           background: linear-gradient(
             to bottom,
             #f7f6fc 0%,
@@ -62,29 +59,26 @@ export default function LayoutShell({ children }) {
             rgba(247, 246, 252, 0.78) 100%
           );
           border-bottom: 1px solid rgba(203, 209, 234, 0.7);
-          padding-top: env(safe-area-inset-top, 0px);
         }
 
         .ia-header-bar {
-          position: relative;
           width: 100%;
           max-width: 1080px;
           margin: 0 auto;
-          padding: 10px 16px;
+          padding: 6px 16px 10px;
+          display: flex;
+          justify-content: center;
         }
 
+        /* Brand pill is now just centered in the bar, not absolutely positioned */
         .ia-header-brand {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 10px;
         }
 
         .ia-header-brand img {
-          height: 46px;
+          height: 40px;
           width: auto;
           border-radius: 12px;
           box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
@@ -124,20 +118,20 @@ export default function LayoutShell({ children }) {
 
         @media (max-width: 720px) {
           .ia-shell {
-            padding-top: calc(82px + env(safe-area-inset-top, 0px));
+            padding-top: calc(60px + env(safe-area-inset-top, 0px));
             padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
           }
 
           .ia-header {
-            height: calc(82px + env(safe-area-inset-top, 0px));
+            height: calc(60px + env(safe-area-inset-top, 0px));
           }
 
           .ia-header-bar {
-            padding: 8px 12px;
+            padding: 4px 12px 8px;
           }
 
           .ia-header-brand img {
-            height: 40px;
+            height: 36px;
           }
 
           .ia-header-title {
@@ -154,7 +148,7 @@ export default function LayoutShell({ children }) {
         }
       `}</style>
 
-      {/* Global base styles (for pages using this shell) */}
+      {/* Global base styles (same as before, but keep them here) */}
       <style jsx global>{`
         html,
         body {
@@ -163,9 +157,6 @@ export default function LayoutShell({ children }) {
           font-family: inherit;
           background: #f5f7fb;
           color: #111320;
-          width: 100%;
-          max-width: 100%;
-          overflow-x: hidden;
         }
 
         * {
@@ -176,7 +167,6 @@ export default function LayoutShell({ children }) {
           color: inherit;
         }
 
-        /* Hide any previous header/nav implementations */
         .top-nav,
         .nav-links-desktop,
         .nav-links-mobile {

@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'out',
   bundledWebRuntime: false,
   server: {
-    url: 'https://imperial-advocates-app-qt8i-i5ot0wbix.vercel.app',
+    url: 'https://imperial-advocates-app-qt8i.vercel.app',
     cleartext: true,
   },
 };
