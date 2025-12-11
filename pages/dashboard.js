@@ -348,9 +348,6 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
-
-        {/* space so bottom nav doesn’t cover content */}
-        <div className="dash-bottom-safe" />
       </div>
 
       <style jsx>{`
@@ -362,7 +359,7 @@ export default function DashboardPage() {
         .dash-inner {
           width: 100%;
           max-width: 520px;
-          padding: 12px 16px 24px;
+          padding: 12px 16px 0; /* ⬅ no extra bottom padding */
         }
 
         .dash-header {
@@ -408,6 +405,11 @@ export default function DashboardPage() {
 
         .dash-section {
           margin-bottom: 16px;
+        }
+
+        /* ⬅ kill extra gap under the LAST section */
+        .dash-section:last-of-type {
+          margin-bottom: 0;
         }
 
         .dash-row-two {
@@ -607,13 +609,9 @@ export default function DashboardPage() {
           background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
         }
 
-        .dash-bottom-safe {
-          height: 0px;
-        }
-
         @media (max-width: 720px) {
           .dash-inner {
-            padding: 10px 12px 12px;
+            padding: 10px 12px 0; /* ⬅ no bottom padding on mobile either */
           }
 
           .dash-row-two {
@@ -627,10 +625,6 @@ export default function DashboardPage() {
 
           .dash-course-grid {
             grid-template-columns: 1fr;
-          }
-
-          .dash-bottom-safe {
-            height: 80px;
           }
         }
       `}</style>
