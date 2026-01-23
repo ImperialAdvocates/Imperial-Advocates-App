@@ -52,13 +52,9 @@ export default function LayoutShell({ children }) {
           align-items: flex-end;
           justify-content: center;
           padding-top: env(safe-area-inset-top, 0px);
-          background: linear-gradient(
-            to bottom,
-            #f7f6fc 0%,
-            #fdf8f1 40%,
-            rgba(247, 246, 252, 0.78) 100%
-          );
-          border-bottom: 1px solid rgba(203, 209, 234, 0.7);
+          background:
+  var(--ia-grad-soft),
+  linear-gradient(to bottom, #f7f6fc 0%, #fdf8f1 40%, rgba(247, 246, 252, 0.78) 100%);
         }
 
         .ia-header-bar {

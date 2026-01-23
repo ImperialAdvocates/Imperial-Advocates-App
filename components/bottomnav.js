@@ -20,7 +20,7 @@ export default function BottomNav() {
   const baseItems = [
     { href: '/dashboard', label: 'Home' },
     { href: '/courses', label: 'Courses' },
-    { href: '/noticeboard', label: 'Noticeboard' },
+    { href: '/noticeboard', label: 'Documents' },
     { href: '/profile', label: 'Profile' },
   ];
 
@@ -165,9 +165,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={
-                active ? 'ia-nav-link ia-nav-link--active' : 'ia-nav-link'
-              }
+              className={active ? 'ia-nav-link ia-nav-link--active' : 'ia-nav-link'}
             >
               <div className="ia-nav-item">
                 <span className="ia-nav-icon-wrap">{icon}</span>
@@ -195,8 +193,8 @@ export default function BottomNav() {
           margin: 0 auto;
           height: 56px;
           border-radius: 24px;
-          background: #ffffff;
-          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+          background: var(--card, #ffffff);
+          box-shadow: var(--shadow-card, 0 10px 30px rgba(15, 23, 42, 0.18));
           display: flex;
           align-items: center;
           justify-content: space-around;
@@ -212,8 +210,9 @@ export default function BottomNav() {
           color: #a1a6c0;
         }
 
+        /* ✅ Active text/icon colour now green */
         .ia-nav-link--active {
-          color: #3b4bd1;
+          color: var(--ia-green, #0f3d2e);
         }
 
         .ia-nav-item {
@@ -234,8 +233,9 @@ export default function BottomNav() {
           justify-content: center;
         }
 
+        /* ✅ Active icon “pill” background now green-tinted */
         .ia-nav-link--active .ia-nav-icon-wrap {
-          background: rgba(59, 75, 209, 0.08);
+          background: rgba(15, 61, 46, 0.10);
         }
 
         .ia-nav-label {
@@ -248,11 +248,12 @@ export default function BottomNav() {
           display: block;
         }
 
+        /* ✅ Avatar ring now green */
         .ia-nav-avatar-wrap {
           width: 22px;
           height: 22px;
           border-radius: 999px;
-          border: 1.4px solid rgba(59, 75, 209, 0.9);
+          border: 1.4px solid rgba(15, 61, 46, 0.9);
           overflow: hidden;
           display: flex;
           align-items: center;
@@ -266,10 +267,11 @@ export default function BottomNav() {
           border-radius: inherit;
         }
 
+        /* ✅ Initial badge now green gradient */
         .ia-nav-avatar-initial {
           font-size: 12px;
           font-weight: 600;
-          background: #3b4bd1;
+          background: var(--ia-grad, linear-gradient(135deg, #0f3d2e, #0b2e23));
           color: #ffffff;
           width: 100%;
           height: 100%;

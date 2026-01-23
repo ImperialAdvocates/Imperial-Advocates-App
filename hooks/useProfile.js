@@ -5,7 +5,12 @@ import { supabase } from '../lib/supabaseClient';
 export function useProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+
+  // derived role helpers
+  const role = (profile?.role || 'viewer').toLowerCase();
+  const isAdmin = role === 'admin';
+  const isInvestor = role === 'investor';
+  const isViewer = role === 'viewer';
 
   useEffect(() => {
     let cancelled = false;
@@ -18,18 +23,9 @@ export function useProfile() {
 
         try {
           const { data, error } = await supabase.auth.getUser();
-
-          if (error) {
-            console.warn('supabase.auth.getUser error:', error);
-          } else {
-            user = data?.user ?? null;
-          }
+          if (!error) user = data?.user ?? null;
         } catch (err) {
-          if (err?.name === 'AuthSessionMissingError') {
-            console.warn(
-              'No auth session found (AuthSessionMissingError) – treating as logged out.'
-            );
-          } else {
+          if (err?.name !== 'AuthSessionMissingError') {
             console.error('Unexpected getUser error:', err);
           }
         }
@@ -37,16 +33,15 @@ export function useProfile() {
         if (!user) {
           if (!cancelled) {
             setProfile(null);
-            setIsAdmin(false);
             setLoading(false);
           }
           return;
         }
 
-        // 1) SELECT email as well
+        // Load profile
         const { data: rows, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username, full_name, role, email')   // 👈 added email here
+          .select('id, username, full_name, role, email')
           .eq('id', user.id)
           .limit(1);
 
@@ -54,7 +49,6 @@ export function useProfile() {
           console.error('Error loading profile row:', profileError);
           if (!cancelled) {
             setProfile(null);
-            setIsAdmin(false);
             setLoading(false);
           }
           return;
@@ -62,25 +56,27 @@ export function useProfile() {
 
         let row = rows?.[0];
 
-        // 2) If no row yet, CREATE it with email
+        // 🔍 DEBUG: see exactly what Supabase returns
+console.log('PROFILE ROW FROM SUPABASE:', row);
+
+        // If profile doesn't exist, create it
         if (!row) {
           const { data, error: insertError } = await supabase
             .from('profiles')
             .insert({
               id: user.id,
-              email: user.email,                               // 👈 new
+              email: user.email,
               username: user.email?.split('@')[0] ?? null,
               full_name: user.user_metadata?.full_name ?? null,
-              role: 'user', // default
+              role: 'viewer', // ✅ default role
             })
-            .select('id, username, full_name, role, email')     // 👈 include email
+            .select('id, username, full_name, role, email')
             .single();
 
           if (insertError) {
             console.error('Error inserting profile:', insertError);
             if (!cancelled) {
               setProfile(null);
-              setIsAdmin(false);
               setLoading(false);
             }
             return;
@@ -91,7 +87,6 @@ export function useProfile() {
 
         if (!cancelled) {
           setProfile(row);
-          setIsAdmin(row.role === 'admin');
           setLoading(false);
           console.log('PROFILE LOADED', row);
         }
@@ -99,7 +94,6 @@ export function useProfile() {
         console.error('Unexpected error in useProfile:', err);
         if (!cancelled) {
           setProfile(null);
-          setIsAdmin(false);
           setLoading(false);
         }
       }
@@ -112,5 +106,12 @@ export function useProfile() {
     };
   }, []);
 
-  return { profile, isAdmin, loading };
+  return {
+    profile,
+    role,
+    isAdmin,
+    isInvestor,
+    isViewer,
+    loading,
+  };
 }

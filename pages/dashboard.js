@@ -229,7 +229,7 @@ export default function DashboardPage() {
                   href={`/noticeboard/${latestPost.id}`}
                   className="dash-card-link"
                 >
-                  View on noticeboard →
+                  View on documents →
                 </Link>
               </>
             )}
@@ -480,12 +480,12 @@ export default function DashboardPage() {
           padding: 8px 16px;
           border-radius: 999px;
           border: none;
-          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          background: var(--ia-grad);
           font-size: 13px;
           font-weight: 600;
           color: #ffffff;
           text-decoration: none;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
         }
 
         /* Continue card */
@@ -493,13 +493,13 @@ export default function DashboardPage() {
         .dash-continue-card {
           padding: 16px 18px;
           border-radius: 26px;
-          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          background: var(--ia-grad);
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
         }
 
         .dash-continue-kicker {
@@ -606,7 +606,7 @@ export default function DashboardPage() {
         .dash-course-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          background: var(--ia-grad);
         }
 
         @media (max-width: 720px) {

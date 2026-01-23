@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
     "@supabase/supabase-js": "^2.86.0",
@@ -19,6 +18,7 @@
     "react-dom": "19.2.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.5"
   }

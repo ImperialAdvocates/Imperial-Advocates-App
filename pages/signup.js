@@ -64,7 +64,7 @@ export default function SignupPage() {
           email: email.trim(),
           username,
           full_name: fullName,
-          role: 'user',
+          role: 'Viewer',
         },
         { onConflict: 'id' }
       );
