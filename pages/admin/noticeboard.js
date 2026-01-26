@@ -550,7 +550,7 @@ const styles = `
     border-radius: 20px;
     padding: 14px 16px 16px;
     background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -598,7 +598,7 @@ const styles = `
     border-radius: 20px;
     padding: 14px 16px 16px;
     background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -654,7 +654,7 @@ const styles = `
   .field-textarea:focus,
   select.field-input:focus {
     border-color: #4f46e5;
-    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+    box-shadow: var(--shadow-brand);
     background: #ffffff;
   }
 
@@ -690,7 +690,7 @@ const styles = `
     border-radius: 16px;
     padding: 10px 12px;
     background: linear-gradient(135deg, #f97316, #6366f1);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.4);
+    box-shadow: var(--shadow-brand);
     color: #ffffff;
   }
 
@@ -760,7 +760,7 @@ const styles = `
   .primary-btn {
     background: linear-gradient(135deg, #f97316, #ec4899);
     color: #ffffff;
-    box-shadow: 0 12px 28px rgba(249, 115, 22, 0.35);
+    box-shadow: var(--shadow-brand);
   }
 
   .primary-btn:disabled {

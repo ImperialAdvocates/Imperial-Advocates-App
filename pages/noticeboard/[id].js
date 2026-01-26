@@ -222,7 +222,7 @@ export default function NoticeboardPostPage() {
           border-radius: 20px;
           padding: 14px 16px 16px;
           background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+          box-shadow: var(--shadow-brand);
         }
 
         .post-header-top {
@@ -266,7 +266,7 @@ export default function NoticeboardPostPage() {
           border-radius: 20px;
           padding: 14px 16px 16px;
           background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+          box-shadow: var(--shadow-brand);
         }
 
         .post-body-text p {
@@ -328,7 +328,7 @@ export default function NoticeboardPostPage() {
           font-size: 13px;
           font-weight: 600;
           text-decoration: none;
-          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.7);
+          box-shadow: var(--shadow-brand);
         }
 
         @media (max-width: 720px) {

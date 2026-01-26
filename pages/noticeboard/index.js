@@ -1,30 +1,18 @@
 // pages/noticeboard/index.js
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import { useProfile } from '../../hooks/useProfile';
 
 export default function NoticeboardPage() {
-  const { profile, loading: profileLoading, isAdmin } = useProfile();
-
-  const role = profile?.role || 'viewer';
-
-  // ✅ Locked for anyone who is NOT investor/admin
-  const isLocked = useMemo(() => !['investor', 'admin'].includes(role), [role]);
-
-  const BOOK_CALL_URL =
-    'https://api.leadconnectorhq.com/widget/booking/gBhfSeUYYjXTgOIPNVYt';
+  const { profile, loading, isAdmin } = useProfile();
 
   const [posts, setPosts] = useState([]);
-  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  // Load posts ONLY if unlocked
   useEffect(() => {
-    if (profileLoading) return;
-    if (isLocked) return;
-
-    let cancelled = false;
+    let alive = true;
 
     async function loadPosts() {
       try {
@@ -37,32 +25,31 @@ export default function NoticeboardPage() {
           .order('is_pinned', { ascending: false })
           .order('created_at', { ascending: false });
 
-        if (cancelled) return;
-
         if (error) {
-          console.error('Error loading documents:', error);
+          console.error('Error loading noticeboard posts:', error);
+          if (!alive) return;
           setLoadError(error.message || 'Unknown error');
           setPosts([]);
           return;
         }
 
+        if (!alive) return;
         setPosts(data || []);
       } catch (err) {
-        if (cancelled) return;
-        console.error('Unexpected documents error:', err);
+        console.error('Unexpected noticeboard error:', err);
+        if (!alive) return;
         setLoadError(err.message || 'Unexpected error');
         setPosts([]);
       } finally {
-        if (!cancelled) setLoadingPosts(false);
+        if (alive) setLoadingPosts(false);
       }
     }
 
     loadPosts();
-
     return () => {
-      cancelled = true;
+      alive = false;
     };
-  }, [profileLoading, isLocked]);
+  }, []);
 
   function formatDate(d) {
     if (!d) return '';
@@ -73,121 +60,16 @@ export default function NoticeboardPage() {
     });
   }
 
-  // ----------------------------
-  // 1) Loading state
-  // ----------------------------
-  if (profileLoading) {
-    return (
-      <div style={{ padding: 16, color: '#6b7280' }}>
-        Loading…
-      </div>
-    );
-  }
-
-  // ----------------------------
-  // 2) Locked state (viewer)
-  // ----------------------------
-  if (isLocked) {
-    return (
-      <div className="locked-page">
-        <div className="locked-card">
-          <p className="locked-eyebrow">DOCUMENTS</p>
-          <h1 className="locked-title">Documents locked</h1>
-          <p className="locked-sub">
-            To unlock access to our investor documents and resources, please book an
-            information session with a consultant.
-          </p>
-
-          <a
-            href={BOOK_CALL_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="locked-btn"
-          >
-            Book an information session →
-          </a>
-
-          <p className="locked-footnote">
-            Once your account is upgraded, this page will unlock automatically.
-          </p>
-        </div>
-
-        <style jsx>{`
-          .locked-page {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 12px 16px 24px;
-          }
-
-          .locked-card {
-            width: 100%;
-            max-width: 520px;
-            background: #ffffff;
-            border-radius: 22px;
-            padding: 18px 18px 20px;
-            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-            text-align: center;
-          }
-
-          .locked-eyebrow {
-            margin: 0 0 6px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: #a1a6c0;
-          }
-
-          .locked-title {
-            margin: 0 0 8px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #111827;
-          }
-
-          .locked-sub {
-            margin: 0 auto;
-            font-size: 13px;
-            line-height: 1.5;
-            color: #6b7280;
-            max-width: 420px;
-          }
-
-          .locked-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 14px;
-            padding: 11px 16px;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
-            white-space: nowrap;
-          }
-
-          .locked-footnote {
-            margin: 12px 0 0;
-            font-size: 12px;
-            color: #9ca3af;
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  // ----------------------------
-  // 3) Unlocked state (investor/admin)
-  // ----------------------------
   const totalLabel =
     posts.length === 0
       ? 'No documents yet'
       : posts.length === 1
       ? '1 document'
       : `${posts.length} documents`;
+
+  if (loading) {
+    return <p style={{ padding: 16 }}>Loading…</p>;
+  }
 
   return (
     <div className="nb-screen">
@@ -228,7 +110,7 @@ export default function NoticeboardPage() {
           {loadingPosts ? (
             <p className="nb-empty">Loading documents…</p>
           ) : loadError ? (
-            <p className="nb-empty">Could not load documents: {loadError}</p>
+            <p className="nb-empty">Could not load: {loadError}</p>
           ) : posts.length === 0 ? (
             <p className="nb-empty">No documents have been added yet.</p>
           ) : (
@@ -243,7 +125,7 @@ export default function NoticeboardPage() {
                     <div className="nb-update-title-row">
                       <div className="nb-update-icon">📄</div>
                       <div className="nb-update-text">
-                        <p className="nb-update-title">{post.title || 'Document'}</p>
+                        <p className="nb-update-title">{post.title}</p>
                         <p className="nb-update-date">{formatDate(post.created_at)}</p>
                       </div>
                     </div>
@@ -261,6 +143,8 @@ export default function NoticeboardPage() {
             </div>
           )}
         </section>
+
+        <div style={{ height: 80 }} />
       </div>
 
       <style jsx>{`
@@ -274,7 +158,6 @@ export default function NoticeboardPage() {
         .nb-phone {
           width: 100%;
           max-width: 520px;
-          padding: 0;
           color: #0f172a;
           display: flex;
           flex-direction: column;
@@ -285,7 +168,7 @@ export default function NoticeboardPage() {
           border-radius: 20px;
           padding: 14px 14px 16px;
           background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+          box-shadow: var(--shadow-brand);
         }
 
         .nb-hero-top-row {
@@ -293,10 +176,6 @@ export default function NoticeboardPage() {
           justify-content: space-between;
           align-items: flex-start;
           gap: 16px;
-        }
-
-        .nb-hero-text {
-          max-width: 560px;
         }
 
         .nb-hero-eyebrow {
@@ -310,7 +189,7 @@ export default function NoticeboardPage() {
         .nb-hero-title {
           margin: 0 0 6px;
           font-size: 22px;
-          font-weight: 700;
+          font-weight: 800;
           color: #111827;
         }
 
@@ -338,6 +217,7 @@ export default function NoticeboardPage() {
           color: #4b5563;
           font-size: 11px;
           font-weight: 500;
+          white-space: nowrap;
         }
 
         .nb-hero-pill-dot {
@@ -349,7 +229,7 @@ export default function NoticeboardPage() {
 
         .nb-hero-manage {
           font-size: 12px;
-          color: #111827;
+          color: #4f46e5;
           text-decoration: none;
         }
 
@@ -361,23 +241,16 @@ export default function NoticeboardPage() {
           border-radius: 22px;
           padding: 14px 14px 16px;
           background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+          box-shadow: var(--shadow-brand);
           display: flex;
           flex-direction: column;
           gap: 10px;
         }
 
-        .nb-section-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 8px;
-        }
-
         .nb-section-heading {
           margin: 0;
           font-size: 16px;
-          font-weight: 600;
+          font-weight: 800;
           color: #111827;
         }
 
@@ -401,17 +274,10 @@ export default function NoticeboardPage() {
           border-radius: 18px;
           padding: 10px 12px;
           background: linear-gradient(145deg, #ffffff, #eef2ff);
-          box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16),
+            0 0 0 1px rgba(209, 213, 219, 0.7);
           text-decoration: none;
           color: #0f172a;
-        }
-
-        .nb-update-main {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          flex: 1;
-          min-width: 0;
         }
 
         .nb-update-title-row {
@@ -424,7 +290,7 @@ export default function NoticeboardPage() {
           width: 34px;
           height: 34px;
           border-radius: 14px;
-          background: radial-gradient(circle at top left, #dbeafe, #60a5fa);
+          background: radial-gradient(circle at top left, #e0e7ff, #1d2cff);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -432,16 +298,10 @@ export default function NoticeboardPage() {
           flex-shrink: 0;
         }
 
-        .nb-update-text {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
         .nb-update-title {
           margin: 0;
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 700;
           color: #111827;
         }
 
@@ -453,7 +313,6 @@ export default function NoticeboardPage() {
 
         .nb-update-pills {
           display: flex;
-          flex-wrap: wrap;
           gap: 6px;
         }
 
@@ -463,7 +322,7 @@ export default function NoticeboardPage() {
           padding: 3px 8px;
           border-radius: 999px;
           font-size: 10px;
-          font-weight: 500;
+          font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.12em;
         }
@@ -476,7 +335,7 @@ export default function NoticeboardPage() {
 
         .nb-update-cta {
           font-size: 12px;
-          font-weight: 500;
+          font-weight: 700;
           color: #4f46e5;
           white-space: nowrap;
         }
@@ -485,17 +344,10 @@ export default function NoticeboardPage() {
           .nb-screen {
             padding: 10px 12px 80px;
           }
-
           .nb-hero-top-row {
             flex-direction: column;
           }
-
           .nb-hero-meta {
-            align-items: flex-start;
-          }
-
-          .nb-update-card {
-            flex-direction: column;
             align-items: flex-start;
           }
         }

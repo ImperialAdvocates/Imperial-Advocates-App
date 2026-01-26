@@ -1113,7 +1113,7 @@ const styles = `
     border-radius: 20px;
     padding: 14px 16px 16px;
     background: #ffffff;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1162,7 +1162,7 @@ const styles = `
     border-radius: 20px;
     padding: 14px 16px 16px;
     background: #ffffff;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -1215,7 +1215,7 @@ const styles = `
   .field-textarea:focus {
     border-color: #6366f1;
     background: #ffffff;
-    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.14);
+    box-shadow: var(--shadow-brand);
   }
 
   .primary-btn {
@@ -1225,9 +1225,9 @@ const styles = `
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    background: var(--ia-grad);
     color: #ffffff;
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    box-shadow: var(--shadow-brand);
     white-space: nowrap;
   }
 

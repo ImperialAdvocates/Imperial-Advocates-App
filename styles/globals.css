@@ -1,47 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* =========================
-   Brand colour variables
-   ========================= */
 :root {
+  /* Keep your typography */
+  --font-family: 'Plus Jakarta Sans', sans-serif;
+
+  /* Core */
   --background: #f5f7fb;
-  --foreground: #111827;
-
-  /* brand */
-  --ia-green: #0f3d2e;          /* deep green (logo bg vibe) */
-  --ia-green-2: #0b2e23;        /* darker */
-  --ia-gold: #d6b35c;           /* optional accent (crown/gold) */
-
-  /* ui */
-  --card: #ffffff;
+  --foreground: #0f172a;
   --muted: #6b7280;
+
+  /* Brand (green from your logo vibe) */
+  --ia-green: #0f3d2e;
+  --ia-green-2: #0b2e23;
+  --ia-gold: #d6b35c;
+
+  /* Surfaces */
+  --card: rgba(255, 255, 255, 0.92);
+  --card-strong: #ffffff;
   --border: rgba(15, 23, 42, 0.10);
 
-  /* gradients */
+  /* Brand gradients */
   --ia-grad: linear-gradient(135deg, var(--ia-green), var(--ia-green-2));
-  --ia-grad-soft: radial-gradient(circle at top, rgba(15, 61, 46, 0.12), transparent 60%);
+  --ia-grad-soft: radial-gradient(
+    circle at 50% 20%,
+    rgba(15, 61, 46, 0.14),
+    transparent 60%
+  );
 
-  /* shadows */
+  /* Shadows */
   --shadow-card: 0 14px 30px rgba(15, 23, 42, 0.06);
-  --shadow-brand: 0 18px 40px rgba(15, 61, 46, 0.22);
+  --shadow-brand: 0 18px 40px rgba(15, 61, 46, 0.20);
+
+  /* Focus ring */
+  --ring: rgba(15, 61, 46, 0.25);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b2e23;
-    --foreground: #e5e7eb;
-  }
+/* Prefer keeping iOS/Capacitor looking consistent */
+html {
+  color-scheme: light;
 }
 
-/* =========================
-   Base layout (unchanged)
-   ========================= */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
 
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: var(--font-family) !important;
   padding: 0;
   margin: 0;
 
@@ -53,6 +57,39 @@ body {
 
   /* Prevent double-tap zoom issues */
   touch-action: manipulation;
+}
+
+/* ---- Background texture + soft overlay ---- */
+/* Texture sits behind everything */
+body {
+  background-image:
+    /* soft light at the top */
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.75), rgba(245, 247, 251, 0.85) 55%, rgba(245, 247, 251, 1) 100%),
+    /* subtle green tint */
+    radial-gradient(circle at 30% 35%, rgba(15, 61, 46, 0.08), transparent 55%),
+    /* your texture */
+    url('/bg/ia-texture.png');
+
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-size: cover, cover, 520px auto; /* texture repeats */
+  background-position: center top, center, center;
+}
+
+/* A “veil” so the texture never overpowers text/cards */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.60), rgba(255, 255, 255, 0.25) 45%, transparent 70%);
+}
+
+/* Make sure your app content sits above the veil */
+#__next {
+  position: relative;
+  z-index: 1;
 }
 
 /* Reset box model */
@@ -68,17 +105,81 @@ a {
   text-decoration: none;
 }
 
-/* Ensure dark mode support if ever needed */
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Accessible focus */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-radius: 10px;
 }
 
-/* 🔑 iOS zoom fix (unchanged) */
+/* iOS zoom fix: stop iOS auto-zooming on inputs */
 input,
 textarea,
 select,
 button {
   font-size: 16px;
+}
+/* =========================
+   IA Texture helpers
+   ========================= */
+
+/* Use your existing file */
+:root {
+  --ia-texture-url: url("/bg/ia-texture.png");
+  --ia-green-overlay: rgba(15, 61, 46, 0.58);
+  --ia-green-overlay-strong: rgba(11, 46, 35, 0.72);
+  --ia-btn-shadow: 0 14px 34px rgba(15, 61, 46, 0.22);
+}
+
+/* Generic textured surface (for cards / big panels) */
+.ia-texture-surface {
+  background:
+    linear-gradient(var(--ia-green-overlay), var(--ia-green-overlay)),
+    var(--ia-texture-url);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #fff;
+}
+
+/* Stronger overlay for small elements like buttons */
+.ia-texture-strong {
+  background:
+    linear-gradient(var(--ia-green-overlay-strong), var(--ia-green-overlay-strong)),
+    var(--ia-texture-url);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #fff;
+}
+
+/* Primary button style you can reuse everywhere */
+.ia-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--ia-btn-shadow);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ia-btn-primary.ia-texture-strong {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.ia-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.ia-btn-primary[disabled],
+.ia-btn-primary.is-disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
 }

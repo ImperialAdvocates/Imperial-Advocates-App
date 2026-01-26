@@ -1,5 +1,5 @@
 // pages/profile.js
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import { useProfile } from '../hooks/useProfile';
@@ -8,19 +8,50 @@ export default function ProfilePage() {
   const router = useRouter();
   const { profile, loading: profileLoading, isAdmin } = useProfile();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  // ✅ Use columns that exist in your profiles table:
+  // full_name, username, email, role, created_at
+  const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
 
-  // Populate form once profile is loaded
   useEffect(() => {
     if (!profile) return;
-    setFirstName(profile.first_name || '');
-    setLastName(profile.last_name || '');
+    setFullName(profile.full_name || '');
     setUsername(profile.username || '');
   }, [profile]);
+
+  const displayName = useMemo(() => {
+    const n = (fullName || '').trim();
+    if (n) return n;
+    const u = (username || '').trim();
+    if (u) return u;
+    return profile?.email ? profile.email.split('@')[0] : 'Investor';
+  }, [fullName, username, profile?.email]);
+
+  const displayInitials = useMemo(() => {
+    const n = (fullName || '').trim();
+    if (n) {
+      const parts = n.split(/\s+/).filter(Boolean);
+      const first = parts[0]?.[0] || '';
+      const last = (parts.length > 1 ? parts[parts.length - 1][0] : '') || '';
+      const initials = (first + last).toUpperCase();
+      return initials || (profile?.email ? profile.email[0].toUpperCase() : 'IA');
+    }
+    if ((username || '').trim()) return username.trim()[0].toUpperCase();
+    if (profile?.email) return profile.email[0].toUpperCase();
+    return 'IA';
+  }, [fullName, username, profile?.email]);
+
+  const roleLabel = useMemo(() => {
+    if (isAdmin) return 'Admin / Team';
+    const r = (profile?.role || 'viewer').toLowerCase();
+    if (r === 'investor') return 'Investor';
+    if (r === 'viewer') return 'Viewer';
+    return r.charAt(0).toUpperCase() + r.slice(1);
+  }, [isAdmin, profile?.role]);
+
+  const isSuccess = status && status.toLowerCase().includes('success');
 
   async function handleSave(e) {
     e.preventDefault();
@@ -31,22 +62,28 @@ export default function ProfilePage() {
       setStatus('');
 
       const payload = {
-        first_name: firstName.trim() || null,
-        last_name: lastName.trim() || null,
+        full_name: fullName.trim() || null,
         username: username.trim() || null,
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update(payload)
-        .eq('id', profile.id);
+        .eq('id', profile.id)
+        .select('id, full_name, username')
+        .single();
 
       if (error) {
         console.error('Error updating profile:', error);
-        setStatus('Could not save changes. Please try again.');
-      } else {
-        setStatus('Profile updated successfully.');
+        setStatus(`Could not save changes: ${error.message}`);
+        return;
       }
+
+      console.log('Profile updated:', data);
+      setStatus('Profile updated successfully.');
+    } catch (err) {
+      console.error('Unexpected save error:', err);
+      setStatus(`Could not save changes: ${err?.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -57,11 +94,52 @@ export default function ProfilePage() {
     router.push('/');
   }
 
+  async function handleDeleteAccount() {
+    const ok = window.confirm(
+      'Delete your account permanently? This cannot be undone.'
+    );
+    if (!ok) return;
+
+    try {
+      setSaving(true);
+      setStatus('');
+
+      const { data } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
+
+      if (!token) {
+        setStatus('No active session found. Please sign in again.');
+        return;
+      }
+
+      const resp = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await resp.json();
+      if (!resp.ok) {
+        setStatus(`Could not delete account: ${json?.error || 'Unknown error'}`);
+        return;
+      }
+
+      await supabase.auth.signOut();
+      router.push('/');
+    } catch (e) {
+      console.error(e);
+      setStatus(`Could not delete account: ${e?.message || 'Unknown error'}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (profileLoading && !profile) {
     return (
       <div className="profile-screen">
         <div className="profile-inner">
-          <section className="profile-header-card">
+          <section className="profile-header-card profile-header-card--loading">
             <div className="profile-header-left">
               <div className="profile-avatar skeleton" />
               <div className="profile-header-text">
@@ -80,7 +158,7 @@ export default function ProfilePage() {
     return (
       <div className="profile-screen">
         <div className="profile-inner">
-          <section className="profile-header-card">
+          <section className="profile-header-card profile-header-card--error">
             <div className="profile-header-left">
               <div className="profile-avatar">
                 <span>IA</span>
@@ -98,25 +176,6 @@ export default function ProfilePage() {
     );
   }
 
-  const displayInitials = (() => {
-    const f = (firstName || '').trim();
-    const l = (lastName || '').trim();
-    if (f || l) {
-      return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase() || 'IA';
-    }
-    if (profile.email) {
-      return profile.email.charAt(0).toUpperCase();
-    }
-    return 'IA';
-  })();
-
-  const displayName =
-    (firstName && firstName.trim()) ||
-    (profile.username && profile.username.trim()) ||
-    (profile.email ? profile.email.split('@')[0] : 'Investor');
-
-  const isSuccess = status && status.toLowerCase().includes('success');
-
   return (
     <div className="profile-screen">
       <div className="profile-inner">
@@ -126,58 +185,44 @@ export default function ProfilePage() {
             <div className="profile-avatar">
               <span>{displayInitials}</span>
             </div>
+
             <div className="profile-header-text">
               <div className="profile-kicker">ACCOUNT • PROFILE</div>
+
               <div className="profile-name-row">
                 <h1 className="profile-name">Hi, {displayName}</h1>
                 {isAdmin && <span className="role-pill">ADMIN</span>}
               </div>
+
               <div className="profile-email">{profile.email}</div>
             </div>
           </div>
 
-          <button
-            type="button"
-            className="logout-btn"
-            onClick={handleLogout}
-          >
+          <button type="button" className="logout-btn" onClick={handleLogout}>
             Logout
           </button>
         </section>
 
-        {/* GRID: DETAILS + ACCOUNT INFO */}
+        {/* GRID */}
         <div className="profile-grid">
-          {/* LEFT: EDITABLE FIELDS */}
+          {/* PERSONAL DETAILS */}
           <section className="profile-card">
             <h2 className="card-title">Personal details</h2>
             <p className="card-sub">
-              Update how your name appears across the Imperial Advocates portal.
+              Update how your details appear across the Imperial Advocates portal.
             </p>
 
             <form onSubmit={handleSave} className="profile-form">
-              <div className="form-row">
-                <label className="field">
-                  <span className="field-label">First name</span>
-                  <input
-                    type="text"
-                    className="field-input"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Akshat"
-                  />
-                </label>
-
-                <label className="field">
-                  <span className="field-label">Last name</span>
-                  <input
-                    type="text"
-                    className="field-input"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Sharma"
-                  />
-                </label>
-              </div>
+              <label className="field">
+                <span className="field-label">Full name</span>
+                <input
+                  type="text"
+                  className="field-input"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Akshat Sharma"
+                />
+              </label>
 
               <label className="field">
                 <span className="field-label">Username</span>
@@ -193,23 +238,23 @@ export default function ProfilePage() {
                 </span>
               </label>
 
-              <button
-                type="submit"
-                className="primary-btn"
-                disabled={saving}
-              >
+              <button type="submit" className="primary-btn" disabled={saving}>
                 {saving ? 'Saving…' : 'Save changes'}
               </button>
 
               {status && (
-                <p className={`status-text ${isSuccess ? 'status-success' : 'status-error'}`}>
+                <p
+                  className={`status-text ${
+                    isSuccess ? 'status-success' : 'status-error'
+                  }`}
+                >
                   {status}
                 </p>
               )}
             </form>
           </section>
 
-          {/* RIGHT: ACCOUNT INFO */}
+          {/* ACCOUNT */}
           <section className="profile-card">
             <h2 className="card-title">Account</h2>
             <p className="card-sub">Your login and membership information.</p>
@@ -221,9 +266,7 @@ export default function ProfilePage() {
 
             <div className="info-row">
               <span className="info-label">Role</span>
-              <span className="info-value">
-                {isAdmin ? 'Admin / Team' : 'Investor'}
-              </span>
+              <span className="info-value">{roleLabel}</span>
             </div>
 
             <div className="info-row">
@@ -241,6 +284,15 @@ export default function ProfilePage() {
             >
               Contact support
             </a>
+
+            <button
+              type="button"
+              className="danger-btn full-width"
+              onClick={handleDeleteAccount}
+              disabled={saving}
+            >
+              {saving ? 'Please wait…' : 'Delete account'}
+            </button>
           </section>
         </div>
 
@@ -253,7 +305,6 @@ export default function ProfilePage() {
 }
 
 const styles = `
-  /* Match dashboard shell sizing */
   .profile-screen {
     width: 100%;
     display: flex;
@@ -262,24 +313,40 @@ const styles = `
 
   .profile-inner {
     width: 100%;
-    max-width: 520px; /* same as dash-inner */
+    max-width: 520px;
     padding: 12px 16px 24px;
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
 
-  /* HEADER CARD – use same gradient family as dashboard CTAs */
+  /* HEADER CARD – TEXTURED GREEN */
   .profile-header-card {
     border-radius: 22px;
     padding: 14px 18px;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
     color: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+
+    background-image:
+      linear-gradient(135deg, rgba(11, 46, 35, 0.82), rgba(15, 61, 46, 0.70)),
+      url('/bg/ia-texture.png');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
+
+    position: relative;
+    overflow: hidden;
+
+    box-shadow: var(--shadow-brand);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .profile-header-card--loading,
+  .profile-header-card--error {
+    opacity: 0.95;
   }
 
   .profile-header-left {
@@ -292,17 +359,19 @@ const styles = `
     width: 48px;
     height: 48px;
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    font-weight: 700;
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.7);
+    font-size: 18px;
+    font-weight: 900;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
   }
 
   .profile-avatar.skeleton {
-    background: rgba(15, 23, 42, 0.4);
+    opacity: 0.5;
   }
 
   .profile-header-text {
@@ -327,6 +396,7 @@ const styles = `
   .profile-name {
     margin: 0;
     font-size: 20px;
+    font-weight: 900;
   }
 
   .role-pill {
@@ -335,8 +405,9 @@ const styles = `
     font-size: 10px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
   }
 
   .profile-email {
@@ -344,24 +415,25 @@ const styles = `
     opacity: 0.92;
   }
 
+  /* LOGOUT BUTTON */
   .logout-btn {
     border-radius: 999px;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.18);
     padding: 8px 20px;
     font-size: 13px;
-    font-weight: 600;
-    background: #111827;
+    font-weight: 800;
+    background: rgba(0,0,0,0.22);
     color: #ffffff;
     cursor: pointer;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.7);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.18);
     white-space: nowrap;
+    backdrop-filter: blur(10px);
   }
 
   .logout-btn:hover {
-    opacity: 0.95;
+    opacity: 0.96;
   }
 
-  /* GRID OF CARDS (stacked on mobile, but still 2 columns on wider screens) */
   .profile-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -371,15 +443,15 @@ const styles = `
   .profile-card {
     border-radius: 22px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    box-shadow: var(--shadow-brand);
   }
 
   .card-title {
     margin: 0 0 4px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 800;
     color: #111827;
   }
 
@@ -389,20 +461,13 @@ const styles = `
     color: #6b7280;
   }
 
-  /* FORM */
   .profile-form {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .form-row {
-    display: flex;
-    gap: 10px;
-  }
-
   .field {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -417,17 +482,17 @@ const styles = `
 
   .field-input {
     border-radius: 999px;
-    border: 1px solid #d1d5db;
-    background: #f9fafb;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    background: rgba(255, 255, 255, 0.92);
     color: #111827;
-    padding: 8px 12px;
+    padding: 9px 12px;
     font-size: 13px;
     outline: none;
   }
 
   .field-input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.12);
+    border-color: rgba(15, 61, 46, 0.55);
+    box-shadow: 0 0 0 3px rgba(15, 61, 46, 0.12);
     background: #ffffff;
   }
 
@@ -436,22 +501,29 @@ const styles = `
     color: #6b7280;
   }
 
+  /* PRIMARY BUTTON – TEXTURED GREEN */
   .primary-btn {
     border-radius: 999px;
-    border: none;
-    padding: 9px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 10px 18px;
     font-size: 13px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+    font-weight: 800;
     color: #ffffff;
     cursor: pointer;
     margin-top: 4px;
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    box-shadow: var(--shadow-brand);
     align-self: flex-start;
+
+    background-image:
+      linear-gradient(135deg, rgba(11, 46, 35, 0.82), rgba(15, 61, 46, 0.70)),
+      url('/bg/ia-texture.png');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
   }
 
   .primary-btn[disabled] {
-    opacity: 0.85;
+    opacity: 0.75;
     cursor: default;
     box-shadow: none;
   }
@@ -459,6 +531,7 @@ const styles = `
   .status-text {
     margin: 6px 0 0;
     font-size: 12px;
+    font-weight: 600;
   }
 
   .status-success {
@@ -469,7 +542,6 @@ const styles = `
     color: #b91c1c;
   }
 
-  /* INFO PANEL */
   .info-row {
     display: flex;
     justify-content: space-between;
@@ -483,29 +555,51 @@ const styles = `
   }
 
   .info-value {
-    font-weight: 500;
+    font-weight: 600;
     color: #111827;
     text-align: right;
   }
 
   .secondary-btn {
     border-radius: 999px;
-    border: 1px solid #d1d5db;
-    padding: 9px 16px;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    padding: 10px 16px;
     font-size: 13px;
-    font-weight: 600;
-    background: #f9fafb;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.92);
     color: #111827;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin-top: 10px;
+    box-shadow: var(--shadow-card);
   }
 
   .secondary-btn:hover {
-    background: #eef2ff;
-    border-color: #c7d2fe;
+    border-color: rgba(15, 61, 46, 0.28);
+    background: rgba(15, 61, 46, 0.05);
+  }
+
+  .danger-btn {
+    margin-top: 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(185, 28, 28, 0.35);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    background: rgba(185, 28, 28, 0.08);
+    color: #991b1b;
+    cursor: pointer;
+  }
+
+  .danger-btn:hover {
+    background: rgba(185, 28, 28, 0.12);
+  }
+
+  .danger-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
   }
 
   .full-width {
@@ -513,7 +607,7 @@ const styles = `
   }
 
   .profile-bottom-safe {
-    height: 72px; /* same vibe as dash-bottom-safe */
+    height: 72px;
   }
 
   @media (max-width: 720px) {
@@ -532,8 +626,10 @@ const styles = `
       text-align: center;
     }
 
-    .form-row {
-      flex-direction: column;
+    .primary-btn {
+      width: 100%;
+      text-align: center;
+      align-self: stretch;
     }
 
     .profile-bottom-safe {

@@ -8,7 +8,6 @@ export default function AdminHome() {
   const router = useRouter();
   const { loading, isAdmin, profile } = useProfile();
 
-  // Redirect non-admins back to dashboard
   useEffect(() => {
     if (!loading && !isAdmin) {
       router.replace('/dashboard');
@@ -16,16 +15,15 @@ export default function AdminHome() {
   }, [loading, isAdmin, router]);
 
   const displayName =
-    (profile?.first_name && profile.first_name.trim()) ||
+    (profile?.full_name && profile.full_name.trim()) ||
     (profile?.username && profile.username.trim()) ||
     (profile?.email ? profile.email.split('@')[0] : 'admin');
 
-  // While we’re checking permissions, still keep the shell so it looks consistent
   if (loading) {
     return (
       <div className="admin-screen">
         <div className="admin-inner">
-          <section className="admin-header-card">
+          <section className="admin-header admin-header--textured">
             <p className="admin-eyebrow">ADMIN</p>
             <h1 className="admin-title">Checking permissions…</h1>
             <p className="admin-sub">Please wait a moment.</p>
@@ -36,82 +34,75 @@ export default function AdminHome() {
     );
   }
 
-  // Fallback if redirect didn’t happen
-  if (!isAdmin) {
-    return (
-      <div className="admin-screen">
-        <div className="admin-inner">
-          <section className="admin-header-card">
-            <p className="admin-eyebrow">ADMIN</p>
-            <h1 className="admin-title">No access</h1>
-            <p className="admin-sub">
-              You don&apos;t have access to this page.
-            </p>
-            <Link href="/dashboard" className="admin-link">
-              ← Back to dashboard
-            </Link>
-          </section>
-        </div>
-        <style jsx>{styles}</style>
-      </div>
-    );
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="admin-screen">
       <div className="admin-inner">
-        {/* HEADER – matches light card style */}
-        <section className="admin-header-card">
+        {/* HEADER */}
+        <section className="admin-header admin-header--textured">
           <p className="admin-eyebrow">IMPERIAL CONTROL • ADMIN</p>
           <h1 className="admin-title">Admin control centre</h1>
           <p className="admin-sub">
-            Welcome back, {displayName}. Manage training content and
-            noticeboard posts from one place.
+            Welcome back, {displayName}. Manage portal content and user access.
           </p>
         </section>
 
-        {/* GRID OF ACTION CARDS */}
-        <section className="admin-grid-card">
-          <h2 className="admin-grid-heading">Admin tools</h2>
+        {/* TOOLS */}
+        <section className="admin-card">
+          <h2 className="admin-card-title">Admin tools</h2>
 
           <div className="admin-grid">
-            {/* Noticeboard */}
             <Link href="/admin/noticeboard" className="admin-tool">
-              <div className="admin-tool-icon admin-tool-icon--orange">NB</div>
-              <div className="admin-tool-body">
-                <p className="admin-tool-label">Noticeboard</p>
-                <h3 className="admin-tool-title">
-                  Manage noticeboard posts
-                </h3>
-                <p className="admin-tool-sub">
-                  Create new updates, pin important announcements and remove old
-                  posts without logging into Supabase.
+              <div className="tool-icon tool-icon--gold">DOC</div>
+              <div className="tool-body">
+                <p className="tool-label">Documents</p>
+                <h3 className="tool-title">Manage documents</h3>
+                <p className="tool-sub">
+                  Create updates, pin important items and remove old documents.
                 </p>
-                <span className="admin-tool-cta">
-                  Open noticeboard manager →
-                </span>
+                <span className="tool-cta">Open documents manager →</span>
               </div>
             </Link>
 
-            {/* Courses */}
             <Link href="/admin/courses" className="admin-tool">
-              <div className="admin-tool-icon admin-tool-icon--blue">CRS</div>
-              <div className="admin-tool-body">
-                <p className="admin-tool-label">Courses</p>
-                <h3 className="admin-tool-title">
-                  Manage courses &amp; lessons
-                </h3>
-                <p className="admin-tool-sub">
-                  Add new courses, update lesson content and control which
-                  modules investors see in their portal.
+              <div className="tool-icon tool-icon--green">CRS</div>
+              <div className="tool-body">
+                <p className="tool-label">Courses</p>
+                <h3 className="tool-title">Manage courses & lessons</h3>
+                <p className="tool-sub">
+                  Add new courses, update lessons, and control training content.
                 </p>
-                <span className="admin-tool-cta">
-                  Open course manager →
-                </span>
+                <span className="tool-cta">Open course manager →</span>
+              </div>
+            </Link>
+
+            <Link href="/admin/users" className="admin-tool">
+              <div className="tool-icon tool-icon--slate">USR</div>
+              <div className="tool-body">
+                <p className="tool-label">Users</p>
+                <h3 className="tool-title">Manage user roles</h3>
+                <p className="tool-sub">
+                  Search by email and change accounts from Viewer to Investor.
+                </p>
+                <span className="tool-cta">Open user manager →</span>
               </div>
             </Link>
           </div>
         </section>
+
+        {/* Strategy */}
+<Link href="/admin/strategy" className="admin-tool">
+  <div className="admin-tool-icon admin-tool-icon--blue">STR</div>
+  <div className="admin-tool-body">
+    <p className="admin-tool-label">Strategy</p>
+    <h3 className="admin-tool-title">Manage strategy modules & lessons</h3>
+    <p className="admin-tool-sub">
+      Create investor strategy preparation modules and upload lesson videos.
+    </p>
+    <span className="admin-tool-cta">Open strategy manager →</span>
+  </div>
+</Link>
 
         <div className="admin-bottom-safe" />
       </div>
@@ -122,7 +113,6 @@ export default function AdminHome() {
 }
 
 const styles = `
-  /* Match dashboard shell */
   .admin-screen {
     width: 100%;
     display: flex;
@@ -138,65 +128,73 @@ const styles = `
     gap: 16px;
   }
 
-  /* HEADER CARD */
-  .admin-header-card {
-    border-radius: 20px;
+  /* TEXTURED HEADER */
+  .admin-header {
+    border-radius: 22px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    color: #ffffff;
+    box-shadow: var(--shadow-brand);
+    position: relative;
+    overflow: hidden;
   }
+
+  .admin-header--textured {
+    background-image: url('/bg/ia-texture.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .admin-header--textured::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(11, 46, 35, 0.86),
+      rgba(15, 61, 46, 0.70)
+    );
+    pointer-events: none;
+  }
+
+  .admin-header > * { position: relative; z-index: 1; }
 
   .admin-eyebrow {
     margin: 0;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    color: #9ca3af;
+    opacity: 0.92;
   }
 
   .admin-title {
     margin: 0;
     font-size: 20px;
-    font-weight: 700;
-    color: #111827;
+    font-weight: 900;
   }
 
   .admin-sub {
     margin: 2px 0 0;
     font-size: 13px;
-    color: #6b7280;
-    max-width: 640px;
+    opacity: 0.92;
   }
 
-  .admin-link {
-    margin-top: 10px;
-    font-size: 13px;
-    color: #4f46e5;
-    text-decoration: none;
-  }
-
-  .admin-link:hover {
-    text-decoration: underline;
-  }
-
-  /* GRID CARD */
-  .admin-grid-card {
-    border-radius: 20px;
+  .admin-card {
+    border-radius: 22px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
 
-  .admin-grid-heading {
+  .admin-card-title {
     margin: 0;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 800;
     color: #111827;
   }
 
@@ -208,14 +206,14 @@ const styles = `
 
   .admin-tool {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     padding: 10px 12px;
     border-radius: 16px;
     text-decoration: none;
     color: #0f172a;
-    background: linear-gradient(145deg, #ffffff, #eef2ff);
+    background: linear-gradient(145deg, #ffffff, #f3f4f6);
     box-shadow:
-      0 14px 36px rgba(15, 23, 42, 0.16),
+      0 14px 36px rgba(15, 23, 42, 0.14),
       0 0 0 1px rgba(209, 213, 219, 0.7);
     transition: transform 0.08s ease-out, box-shadow 0.12s ease-out;
   }
@@ -223,40 +221,31 @@ const styles = `
   .admin-tool:hover {
     transform: translateY(-1px);
     box-shadow:
-      0 18px 50px rgba(15, 23, 42, 0.24),
-      0 0 0 1px rgba(129, 140, 248, 0.9);
+      0 18px 50px rgba(15, 23, 42, 0.22),
+      0 0 0 1px rgba(15, 61, 46, 0.22);
   }
 
-  .admin-tool-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
+  .tool-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
+    font-weight: 900;
     letter-spacing: 0.14em;
-    color: #111827;
+    color: #0b2e23;
     flex-shrink: 0;
   }
 
-  .admin-tool-icon--orange {
-    background: radial-gradient(circle at top left, #fed7aa, #f97316);
-  }
+  .tool-icon--green { background: radial-gradient(circle at top left, #d1fae5, #34d399); }
+  .tool-icon--gold  { background: radial-gradient(circle at top left, #fde68a, #f59e0b); }
+  .tool-icon--slate { background: radial-gradient(circle at top left, #e5e7eb, #94a3b8); }
 
-  .admin-tool-icon--blue {
-    background: radial-gradient(circle at top left, #bfdbfe, #3b82f6);
-  }
+  .tool-body { display: flex; flex-direction: column; gap: 2px; }
 
-  .admin-tool-body {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .admin-tool-label {
+  .tool-label {
     margin: 0;
     font-size: 11px;
     text-transform: uppercase;
@@ -264,44 +253,29 @@ const styles = `
     color: #9ca3af;
   }
 
-  .admin-tool-title {
+  .tool-title {
     margin: 0;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 800;
     color: #111827;
   }
 
-  .admin-tool-sub {
+  .tool-sub {
     margin: 0;
     font-size: 12px;
     color: #6b7280;
   }
 
-  .admin-tool-cta {
+  .tool-cta {
     margin-top: 4px;
     font-size: 12px;
     color: #4f46e5;
   }
 
-  .admin-bottom-safe {
-    height: 60px;
-  }
+  .admin-bottom-safe { height: 60px; }
 
   @media (max-width: 720px) {
-    .admin-screen {
-      padding: 10px 12px 80px;
-    }
-
-    .admin-grid-card {
-      padding: 12px 12px 14px;
-    }
-
-    .admin-tool {
-      align-items: flex-start;
-    }
-
-    .admin-bottom-safe {
-      height: 80px;
-    }
+    .admin-screen { padding: 10px 12px 80px; }
+    .admin-bottom-safe { height: 80px; }
   }
 `;

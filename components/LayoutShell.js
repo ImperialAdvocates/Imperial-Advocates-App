@@ -76,7 +76,7 @@ export default function LayoutShell({ children }) {
           height: 36px;
           width: auto;
           border-radius: 12px;
-          box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
+          box-shadow: var(--shadow-brand);
         }
 
         .ia-header-text {

@@ -10,8 +10,6 @@ function getDriveEmbedUrl(url) {
   if (!url || typeof url !== 'string') return null;
   if (!url.includes('drive.google.com')) return null;
 
-  // Handles links like:
-  // https://drive.google.com/file/d/FILE_ID/view?usp=drive_link
   const match = url.match(/\/d\/([^/]+)/);
   if (!match || !match[1]) return null;
 
@@ -34,9 +32,6 @@ export default function LessonPage() {
 
   const [currentIndex, setCurrentIndex] = useState(null);
 
-  // ─────────────────────────────────────────────
-  // Load course, lessons, this lesson + progress
-  // ─────────────────────────────────────────────
   useEffect(() => {
     if (!courseId || !lessonId) return;
     let isMounted = true;
@@ -45,44 +40,33 @@ export default function LessonPage() {
       try {
         setLoading(true);
 
-        // Get user
         const {
           data: { user },
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError) {
-          console.error('Error getting auth user:', userError);
-        }
+        if (userError) console.error('Error getting auth user:', userError);
 
-        // Course (title for header / breadcrumbs)
         const { data: courseData, error: courseError } = await supabase
           .from('courses')
           .select('id, title')
           .eq('id', courseId)
           .single();
 
-        if (courseError) {
-          console.error('Error loading course:', courseError);
-        }
+        if (courseError) console.error('Error loading course:', courseError);
 
-        // All lessons for outline + index
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
           .select('*')
           .eq('course_id', courseId)
           .order('lesson_index', { ascending: true });
 
-        if (lessonsError) {
-          console.error('Error loading lessons:', lessonsError);
-        }
+        if (lessonsError) console.error('Error loading lessons:', lessonsError);
 
-        // Current lesson (from list so index matches)
         const lessonFromList = (lessonsData || []).find(
           (l) => String(l.id) === String(lessonId),
         );
 
-        // Progress for this lesson
         let completed = false;
         if (user) {
           const { data: progressRows, error: progressError } = await supabase
@@ -127,15 +111,11 @@ export default function LessonPage() {
     };
   }, [courseId, lessonId]);
 
-  // Display name (same vibe as rest of app)
   const displayName =
     (profile?.first_name && profile.first_name.trim()) ||
     (profile?.username && profile.username.trim()) ||
     (profile?.email ? profile.email.split('@')[0] : 'Investor');
 
-  // ─────────────────────────────────────────────
-  // Mark lesson complete / incomplete
-  // ─────────────────────────────────────────────
   async function toggleCompletion() {
     try {
       setSaving(true);
@@ -158,15 +138,11 @@ export default function LessonPage() {
           completed_at: new Date().toISOString(),
         };
 
-        const { error } = await supabase
-          .from('lesson_progress')
-          .upsert(payload);
-
+        const { error } = await supabase.from('lesson_progress').upsert(payload);
         if (error) {
           console.error('Error marking lesson complete:', error);
           return;
         }
-
         setIsCompleted(true);
       } else {
         const { error } = await supabase
@@ -180,7 +156,6 @@ export default function LessonPage() {
           console.error('Error clearing completion:', error);
           return;
         }
-
         setIsCompleted(false);
       }
     } finally {
@@ -188,29 +163,21 @@ export default function LessonPage() {
     }
   }
 
-  // Prev / next
   const prevLesson =
-    currentIndex !== null && currentIndex > 0
-      ? lessons[currentIndex - 1]
-      : null;
+    currentIndex !== null && currentIndex > 0 ? lessons[currentIndex - 1] : null;
 
   const nextLesson =
     currentIndex !== null && currentIndex < lessons.length - 1
       ? lessons[currentIndex + 1]
       : null;
 
-  const lessonNumber =
-    currentIndex !== null ? `Lesson ${currentIndex + 1}` : 'Lesson';
+  const lessonNumber = currentIndex !== null ? `Lesson ${currentIndex + 1}` : 'Lesson';
 
-  // Decide how to render the video
   const hasDirectVideo =
     !!lesson?.video_url && !lesson.video_url.includes('drive.google.com');
   const driveEmbedUrl = getDriveEmbedUrl(lesson?.video_url || '');
   const hasDriveVideo = !!driveEmbedUrl;
 
-  // ─────────────────────────────────────────────
-  // RENDER STATES
-  // ─────────────────────────────────────────────
   if (loading && !lesson) {
     return (
       <div className="lesson-screen">
@@ -267,11 +234,11 @@ export default function LessonPage() {
             <div className="lesson-user-pill">
               Logged in as <span>{displayName}</span>
             </div>
+
             <button
               type="button"
               className={
-                'lesson-complete-btn ' +
-                (isCompleted ? 'lesson-complete-btn--done' : '')
+                'lesson-complete-btn ' + (isCompleted ? 'lesson-complete-btn--done' : '')
               }
               onClick={toggleCompletion}
               disabled={saving}
@@ -288,11 +255,7 @@ export default function LessonPage() {
         {/* VIDEO CARD */}
         <section className="lesson-video-card">
           {hasDirectVideo ? (
-            <video
-              src={lesson.video_url}
-              controls
-              controlsList="nodownload"
-            />
+            <video src={lesson.video_url} controls controlsList="nodownload" />
           ) : hasDriveVideo ? (
             <iframe
               src={driveEmbedUrl}
@@ -319,21 +282,15 @@ export default function LessonPage() {
           <h2 className="lesson-notes-title">Lesson notes</h2>
           <div className="lesson-notes-text">
             {lesson.description || lesson.summary || lesson.notes ? (
-              <p>
-                {lesson.description || lesson.summary || lesson.notes}
-              </p>
+              <p>{lesson.description || lesson.summary || lesson.notes}</p>
             ) : (
-              <p>
-                Use this space to take notes while you watch the lesson.
-              </p>
+              <p>Use this space to take notes while you watch the lesson.</p>
             )}
 
             {(lesson.body || lesson.content) &&
               (lesson.body || lesson.content)
                 .split(/\n{2,}/)
-                .map((block, idx) => (
-                  <p key={idx}>{block}</p>
-                ))}
+                .map((block, idx) => <p key={idx}>{block}</p>)}
           </div>
         </section>
 
@@ -353,7 +310,7 @@ export default function LessonPage() {
           {nextLesson ? (
             <Link
               href={`/courses/${course.id}/${nextLesson.id}`}
-              className="lesson-nav-link"
+              className="lesson-nav-link lesson-nav-link--primary"
             >
               Next lesson →
             </Link>
@@ -372,29 +329,25 @@ export default function LessonPage() {
           <div className="outline-header">
             <h2 className="outline-title">Lesson outline</h2>
             <span className="outline-count">
-              {currentIndex !== null ? currentIndex + 1 : '–'}/
-              {totalLessons}
+              {currentIndex !== null ? currentIndex + 1 : '–'}/{totalLessons}
             </span>
           </div>
 
           <div className="outline-list">
             {lessons.map((l, index) => {
               const isCurrent = String(l.id) === String(lesson.id);
+
               return (
                 <Link
                   key={l.id}
                   href={`/courses/${course.id}/${l.id}`}
-                  className={
-                    'outline-item ' +
-                    (isCurrent ? 'outline-item--current' : '')
-                  }
+                  className={'outline-item ' + (isCurrent ? 'outline-item--current' : '')}
                 >
                   <div className="outline-number">{index + 1}</div>
+
                   <div className="outline-label-wrap">
                     <div className="outline-label">{l.title}</div>
-                    {isCurrent && (
-                      <div className="outline-tag">Current</div>
-                    )}
+                    {isCurrent && <div className="outline-tag">Current</div>}
                   </div>
                 </Link>
               );
@@ -410,9 +363,7 @@ export default function LessonPage() {
   );
 }
 
-// pulled out so we can reuse in multiple return paths
 const styles = `
-  /* OUTER SHELL – MATCHES DASHBOARD WIDTH */
   .lesson-screen {
     width: 100%;
     display: flex;
@@ -432,8 +383,8 @@ const styles = `
   .lesson-header {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -450,7 +401,7 @@ const styles = `
   .lesson-title {
     margin: 0;
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 800;
     color: #111827;
   }
 
@@ -461,7 +412,8 @@ const styles = `
   }
 
   .lesson-breadcrumbs a {
-    color: #4f46e5;
+    color: var(--ia-green);
+    font-weight: 600;
     text-decoration: none;
   }
 
@@ -481,30 +433,59 @@ const styles = `
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 999px;
-    background: #eef2ff;
+    background: rgba(15, 61, 46, 0.08);
+    border: 1px solid rgba(15, 61, 46, 0.12);
     color: #4b5563;
   }
 
   .lesson-user-pill span {
-    font-weight: 600;
+    font-weight: 700;
   }
 
+  /* COMPLETE BUTTON (neutral / textured when done) */
   .lesson-complete-btn {
     border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.7);
-    padding: 6px 12px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    padding: 7px 12px;
     font-size: 12px;
-    font-weight: 600;
-    background: #ffffff;
+    font-weight: 700;
+    background: rgba(255,255,255,0.92);
     color: #111827;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-card);
+    white-space: nowrap;
   }
 
   .lesson-complete-btn--done {
-    background: #22c55e;
-    color: #f9fafb;
-    border-color: #16a34a;
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #ffffff;
+    background-image: url('/bg/ia-texture.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lesson-complete-btn--done::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(11, 46, 35, 0.86),
+      rgba(15, 61, 46, 0.70)
+    );
+    pointer-events: none;
+  }
+
+  .lesson-complete-btn--done {
+    position: relative;
+  }
+
+  .lesson-complete-btn--done span,
+  .lesson-complete-btn--done {
+    z-index: 1;
   }
 
   .lesson-complete-btn[disabled] {
@@ -517,7 +498,7 @@ const styles = `
     border-radius: 20px;
     overflow: hidden;
     background: #000000;
-    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--shadow-brand);
   }
 
   .lesson-video-card video,
@@ -537,14 +518,14 @@ const styles = `
   .lesson-notes-card {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+    box-shadow: var(--shadow-brand);
   }
 
   .lesson-notes-title {
     margin: 0 0 6px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 800;
     color: #111827;
   }
 
@@ -564,22 +545,52 @@ const styles = `
 
   .lesson-nav-link {
     border-radius: 999px;
-    padding: 7px 14px;
+    padding: 8px 14px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 800;
     text-decoration: none;
-    color: #ffffff;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
     text-align: center;
     flex: 0 0 auto;
+    box-shadow: var(--shadow-card);
+    white-space: nowrap;
   }
 
   .lesson-nav-link--ghost {
-    background: #ffffff;
+    background: rgba(255,255,255,0.96);
     color: #111827;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
-    border: 1px solid rgba(148, 163, 184, 0.5);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+  }
+
+  /* PRIMARY = textured green */
+  .lesson-nav-link--primary {
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.18);
+    background-image: url('/bg/ia-texture.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lesson-nav-link--primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(11, 46, 35, 0.86),
+      rgba(15, 61, 46, 0.70)
+    );
+    pointer-events: none;
+  }
+
+  .lesson-nav-link--primary {
+    position: relative;
+  }
+  .lesson-nav-link--primary > * {
+    position: relative;
+    z-index: 1;
   }
 
   .lesson-nav-row span {
@@ -590,8 +601,8 @@ const styles = `
   .lesson-outline-card {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+    box-shadow: var(--shadow-brand);
   }
 
   .outline-header {
@@ -604,7 +615,7 @@ const styles = `
   .outline-title {
     margin: 0;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 800;
     color: #111827;
   }
 
@@ -627,25 +638,29 @@ const styles = `
     border-radius: 12px;
     text-decoration: none;
     color: #111827;
-    background: #f9fafb;
+    background: rgba(15, 61, 46, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.08);
   }
 
   .outline-item--current {
-    background: #eef2ff;
-    box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6);
+    background: rgba(15, 61, 46, 0.08);
+    border-color: rgba(15, 61, 46, 0.22);
+    box-shadow: var(--shadow-card);
   }
 
+  /* gold neutral numbers */
   .outline-number {
     width: 26px;
     height: 26px;
     border-radius: 999px;
-    background: #fee2e2;
-    color: #b91c1c;
+    background: rgba(214, 179, 92, 0.22);
+    border: 1px solid rgba(214, 179, 92, 0.30);
+    color: #6b4f12;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 900;
     flex-shrink: 0;
   }
 
@@ -657,13 +672,15 @@ const styles = `
 
   .outline-label {
     font-size: 13px;
+    font-weight: 600;
   }
 
   .outline-tag {
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: #4f46e5;
+    color: var(--ia-green);
+    font-weight: 800;
   }
 
   .lesson-bottom-safe {
@@ -673,6 +690,16 @@ const styles = `
   @media (max-width: 720px) {
     .lesson-screen {
       padding: 10px 12px 80px;
+    }
+
+    .lesson-header-bottom-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .lesson-complete-btn {
+      width: 100%;
+      text-align: center;
     }
 
     .lesson-nav-row {

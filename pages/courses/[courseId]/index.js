@@ -16,9 +16,6 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  // ─────────────────────────────────────────────
-  // Load course + lessons + progress
-  // ─────────────────────────────────────────────
   useEffect(() => {
     if (!courseId) return;
     let isMounted = true;
@@ -28,17 +25,13 @@ export default function CourseDetailPage() {
         setLoading(true);
         setLoadError(null);
 
-        // User
         const {
           data: { user },
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError) {
-          console.error('Error getting auth user:', userError);
-        }
+        if (userError) console.error('Error getting auth user:', userError);
 
-        // Course
         const { data: courseData, error: courseError } = await supabase
           .from('courses')
           .select('id, title, description')
@@ -54,19 +47,14 @@ export default function CourseDetailPage() {
           return;
         }
 
-        // Lessons for this course
-        // IMPORTANT: only select columns that actually exist
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
           .select('id, title, lesson_index')
           .eq('course_id', courseId)
           .order('lesson_index', { ascending: true });
 
-        if (lessonsError) {
-          console.error('Error loading lessons:', lessonsError);
-        }
+        if (lessonsError) console.error('Error loading lessons:', lessonsError);
 
-        // User progress for this course
         let userProgress = [];
         if (user) {
           const { data: progressData, error: progressError } = await supabase
@@ -102,9 +90,6 @@ export default function CourseDetailPage() {
     };
   }, [courseId]);
 
-  // ─────────────────────────────────────────────
-  // Derived stats (string-safe IDs like your original)
-  // ─────────────────────────────────────────────
   const totalLessons = lessons.length;
 
   const completedLessonIds = new Set(
@@ -113,12 +98,9 @@ export default function CourseDetailPage() {
 
   const completedCount = completedLessonIds.size;
   const completionPct =
-    totalLessons === 0
-      ? 0
-      : Math.round((completedCount / totalLessons) * 100);
+    totalLessons === 0 ? 0 : Math.round((completedCount / totalLessons) * 100);
 
-  const isLessonCompleted = (lessonId) =>
-    completedLessonIds.has(String(lessonId));
+  const isLessonCompleted = (lessonId) => completedLessonIds.has(String(lessonId));
 
   const getLessonStatusLabel = (lessonId, index) => {
     if (totalLessons === 0) return '';
@@ -131,12 +113,9 @@ export default function CourseDetailPage() {
     return anyEarlierCompleted ? 'In progress' : 'Not started';
   };
 
-  // Next lesson (first incomplete, otherwise last)
   let nextLesson = null;
   if (lessons.length > 0) {
-    const firstIncomplete = lessons.find(
-      (l) => !completedLessonIds.has(String(l.id))
-    );
+    const firstIncomplete = lessons.find((l) => !completedLessonIds.has(String(l.id)));
     nextLesson = firstIncomplete || lessons[lessons.length - 1];
   }
 
@@ -145,9 +124,6 @@ export default function CourseDetailPage() {
     (profile?.username && profile.username.trim()) ||
     (profile?.email ? profile.email.split('@')[0] : 'Investor');
 
-  // ─────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────
   if (loading && !course) {
     return (
       <div className="course-screen">
@@ -193,8 +169,7 @@ export default function CourseDetailPage() {
           <p className="course-eyebrow">TRAINING PROGRAM</p>
           <h1 className="course-title">{course.title}</h1>
           <p className="course-sub">
-            {course.description ||
-              'Structured training for Imperial Advocates investors.'}
+            {course.description || 'Structured training for Imperial Advocates investors.'}
           </p>
 
           <div className="course-header-row">
@@ -204,14 +179,12 @@ export default function CourseDetailPage() {
                 <span>
                   {totalLessons === 0
                     ? 'No lessons yet'
-                    : `${totalLessons} lesson${
-                        totalLessons === 1 ? '' : 's'
-                      }`}
+                    : `${totalLessons} lesson${totalLessons === 1 ? '' : 's'}`}
                 </span>
               </div>
+
               <div className="course-chip">
-                Progress: {completedCount}/{totalLessons || 0} ·{' '}
-                {completionPct}%
+                Progress: {completedCount}/{totalLessons || 0} · {completionPct}%
               </div>
             </div>
 
@@ -221,16 +194,17 @@ export default function CourseDetailPage() {
           </div>
         </header>
 
-        {/* CONTINUE CARD */}
+        {/* NEXT UP (TEXTURED ACCENT) */}
         {nextLesson && (
           <section className="course-continue-card">
-            <div>
+            <div className="course-continue-left">
               <p className="course-continue-eyebrow">Next up</p>
               <p className="course-continue-title">{nextLesson.title}</p>
               <p className="course-continue-sub">
                 Tap below to jump into the next lesson.
               </p>
             </div>
+
             <Link
               href={`/courses/${course.id}/${nextLesson.id}`}
               className="course-continue-btn"
@@ -252,16 +226,13 @@ export default function CourseDetailPage() {
           {loadError ? (
             <p className="course-empty">{loadError}</p>
           ) : totalLessons === 0 ? (
-            <p className="course-empty">
-              No lessons have been added to this course yet.
-            </p>
+            <p className="course-empty">No lessons have been added to this course yet.</p>
           ) : (
             <div className="course-lessons-list">
               {lessons.map((lesson, index) => {
                 const completed = isLessonCompleted(lesson.id);
                 const statusLabel = getLessonStatusLabel(lesson.id, index);
-                const isNext =
-                  nextLesson && nextLesson.id === lesson.id && !completed;
+                const isNext = nextLesson && nextLesson.id === lesson.id && !completed;
 
                 return (
                   <Link
@@ -274,16 +245,12 @@ export default function CourseDetailPage() {
                     }
                   >
                     <div className="course-lesson-left">
-                      <div className="course-lesson-number">
-                        {index + 1}
-                      </div>
+                      <div className="course-lesson-number">{index + 1}</div>
+
                       <div className="course-lesson-text">
-                        <p className="course-lesson-title">
-                          {lesson.title}
-                        </p>
+                        <p className="course-lesson-title">{lesson.title}</p>
                         <p className="course-lesson-sub">
-                          Tap to open this lesson. Your progress is saved
-                          automatically.
+                          Tap to open this lesson. Your progress is saved automatically.
                         </p>
                       </div>
                     </div>
@@ -296,7 +263,7 @@ export default function CourseDetailPage() {
                             ? 'course-status-pill--done'
                             : statusLabel === 'In progress'
                             ? 'course-status-pill--progress'
-                            : '')
+                            : 'course-status-pill--notstarted')
                         }
                       >
                         {statusLabel}
@@ -318,7 +285,6 @@ export default function CourseDetailPage() {
 }
 
 const styles = `
-  /* OUTER WRAPPER – MATCHES DASHBOARD & LESSON WIDTH */
   .course-screen {
     width: 100%;
     display: flex;
@@ -338,8 +304,8 @@ const styles = `
   .course-header {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -386,7 +352,8 @@ const styles = `
     gap: 6px;
     padding: 4px 10px;
     border-radius: 999px;
-    background: #eef2ff;
+    background: rgba(15, 61, 46, 0.08);
+    border: 1px solid rgba(15, 61, 46, 0.12);
     font-size: 11px;
     color: #4b5563;
     font-weight: 500;
@@ -396,14 +363,15 @@ const styles = `
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: #4f46e5;
+    background: var(--ia-green);
   }
 
   .course-user-pill {
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 999px;
-    background: #f9fafb;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.08);
     color: #4b5563;
   }
 
@@ -415,24 +383,47 @@ const styles = `
   .course-card {
     border-radius: 20px;
     padding: 14px 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+    box-shadow: var(--shadow-brand);
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  /* CONTINUE CARD */
+  /* NEXT UP – TEXTURED ACCENT CARD */
   .course-continue-card {
     border-radius: 22px;
     padding: 14px 16px 16px;
-    background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
-    color: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+    box-shadow: var(--shadow-brand);
+    position: relative;
+    overflow: hidden;
+
+    background-image: url('/bg/ia-texture.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .course-continue-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(11, 46, 35, 0.82),
+      rgba(15, 61, 46, 0.66)
+    );
+    pointer-events: none;
+  }
+
+  .course-continue-left,
+  .course-continue-btn {
+    position: relative;
+    z-index: 1;
   }
 
   .course-continue-eyebrow {
@@ -440,34 +431,38 @@ const styles = `
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    opacity: 0.9;
+    opacity: 0.92;
+    color: rgba(255,255,255,0.92);
   }
 
   .course-continue-title {
     margin: 0 0 2px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
+    color: #ffffff;
   }
 
   .course-continue-sub {
     margin: 0;
     font-size: 12px;
     opacity: 0.95;
+    color: rgba(255,255,255,0.92);
   }
 
   .course-continue-btn {
     border-radius: 999px;
     padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     color: #ffffff;
     text-decoration: none;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     backdrop-filter: blur(8px);
     white-space: nowrap;
   }
 
-  /* LESSON LIST */
+  /* LIST HEADER */
   .course-list-header {
     display: flex;
     justify-content: space-between;
@@ -478,14 +473,15 @@ const styles = `
   .course-list-title {
     margin: 0;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     color: #111827;
   }
 
   .course-back-link {
     font-size: 12px;
-    color: #4f46e5;
+    color: var(--ia-green);
     text-decoration: none;
+    font-weight: 600;
   }
 
   .course-back-link:hover {
@@ -498,6 +494,7 @@ const styles = `
     color: #6b7280;
   }
 
+  /* LESSON ITEMS */
   .course-lessons-list {
     display: flex;
     flex-direction: column;
@@ -511,10 +508,12 @@ const styles = `
     gap: 10px;
     border-radius: 16px;
     padding: 10px 12px;
-    background: linear-gradient(145deg, #ffffff, #eef2ff);
+
+    background: linear-gradient(145deg, #ffffff, rgba(15, 61, 46, 0.04));
     box-shadow:
-      0 14px 36px rgba(15, 23, 42, 0.2),
-      0 0 0 1px rgba(209, 213, 219, 0.7);
+      0 14px 36px rgba(15, 23, 42, 0.12),
+      0 0 0 1px rgba(15, 23, 42, 0.08);
+
     text-decoration: none;
     color: #0f172a;
     transition: transform 0.08s ease-out, box-shadow 0.12s ease-out;
@@ -523,8 +522,8 @@ const styles = `
   .course-lesson-item:hover {
     transform: translateY(-1px);
     box-shadow:
-      0 18px 50px rgba(15, 23, 42, 0.28),
-      0 0 0 1px rgba(129, 140, 248, 0.9);
+      0 18px 50px rgba(15, 23, 42, 0.18),
+      0 0 0 1px rgba(15, 61, 46, 0.28);
   }
 
   .course-lesson-item--done {
@@ -533,8 +532,8 @@ const styles = `
 
   .course-lesson-item--next {
     box-shadow:
-      0 18px 50px rgba(129, 140, 248, 0.4),
-      0 0 0 1px rgba(129, 140, 248, 0.9);
+      0 18px 50px rgba(15, 61, 46, 0.18),
+      0 0 0 1px rgba(15, 61, 46, 0.55);
   }
 
   .course-lesson-left {
@@ -545,17 +544,19 @@ const styles = `
     min-width: 0;
   }
 
+  /* lesson number: green/gold neutral, not red */
   .course-lesson-number {
     width: 32px;
     height: 32px;
     border-radius: 12px;
-    background: #fee2e2; 
-    color: #b91c1c;
+    background: rgba(214, 179, 92, 0.22);
+    border: 1px solid rgba(214, 179, 92, 0.30);
+    color: #6b4f12;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 800;
     flex-shrink: 0;
   }
 
@@ -569,7 +570,7 @@ const styles = `
   .course-lesson-title {
     margin: 0;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     color: #111827;
   }
 
@@ -586,25 +587,33 @@ const styles = `
     gap: 4px;
   }
 
+  /* STATUS PILLS – green system */
   .course-status-pill {
     padding: 3px 8px;
     border-radius: 999px;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    background: #eef2ff;
-    color: #4f46e5;
+    border: 1px solid transparent;
+  }
+
+  .course-status-pill--notstarted {
+    background: rgba(15, 61, 46, 0.08);
+    color: var(--ia-green);
+    border-color: rgba(15, 61, 46, 0.14);
   }
 
   .course-status-pill--done {
-    background: #dcfce7;
+    background: rgba(34, 197, 94, 0.14);
     color: #15803d;
+    border-color: rgba(34, 197, 94, 0.22);
   }
 
   .course-status-pill--progress {
-    background: #fef3c7;
-    color: #b45309;
+    background: rgba(214, 179, 92, 0.18);
+    color: #8a6a16;
+    border-color: rgba(214, 179, 92, 0.28);
   }
 
   .course-bottom-safe {

@@ -1,5 +1,5 @@
 // pages/dashboard.js
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { useProfile } from '../hooks/useProfile';
@@ -10,17 +10,17 @@ export default function DashboardPage() {
   const BOOK_CALL_URL =
     'https://api.leadconnectorhq.com/widget/booking/gBhfSeUYYjXTgOIPNVYt';
 
+  const role = profile?.role || 'viewer';
+  const isInvestor = useMemo(() => ['investor', 'admin'].includes(role), [role]);
+
   const [courses, setCourses] = useState([]);
   const [courseStats, setCourseStats] = useState([]);
   const [resumeLesson, setResumeLesson] = useState(null);
-
-  const [latestPost, setLatestPost] = useState(null);
-  const [latestPostLoading, setLatestPostLoading] = useState(true);
-
   const [loading, setLoading] = useState(true);
 
-  // Load courses, lessons & user progress
   useEffect(() => {
+    let alive = true;
+
     async function loadDashboardData() {
       try {
         setLoading(true);
@@ -40,11 +40,9 @@ export default function DashboardPage() {
 
         if (coursesError) {
           console.error('Error loading courses:', coursesError);
-          setCourses([]);
+          if (alive) setCourses([]);
           return;
         }
-
-        setCourses(coursesData || []);
 
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
@@ -108,6 +106,9 @@ export default function DashboardPage() {
           }
         });
 
+        if (!alive) return;
+
+        setCourses(coursesData || []);
         setCourseStats(stats);
 
         if (bestResume && bestResume.course && bestResume.lesson) {
@@ -123,40 +124,15 @@ export default function DashboardPage() {
       } catch (err) {
         console.error('Unexpected dashboard error:', err);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     }
 
     loadDashboardData();
-  }, []);
 
-  // Latest noticeboard post
-  useEffect(() => {
-    async function loadLatestPost() {
-      try {
-        setLatestPostLoading(true);
-
-        const { data, error } = await supabase
-          .from('noticeboard_posts')
-          .select('id, title, body, is_pinned, created_at')
-          .order('is_pinned', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (error) {
-          console.error('Error loading latest noticeboard post:', error);
-          setLatestPost(null);
-        } else if (data && data.length > 0) {
-          setLatestPost(data[0]);
-        } else {
-          setLatestPost(null);
-        }
-      } finally {
-        setLatestPostLoading(false);
-      }
-    }
-
-    loadLatestPost();
+    return () => {
+      alive = false;
+    };
   }, []);
 
   function getStatsForCourse(courseId) {
@@ -166,11 +142,6 @@ export default function DashboardPage() {
         completedLessons: 0,
       }
     );
-  }
-
-  function formatDate(d) {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString();
   }
 
   const displayName =
@@ -192,7 +163,9 @@ export default function DashboardPage() {
           <div>
             <p className="dash-label">Investor training</p>
             <h1 className="dash-title">Welcome back, {displayName}</h1>
-            <p className="dash-subtitle">Let&apos;s continue where you left off.</p>
+            <p className="dash-subtitle">
+              Let&apos;s continue where you left off.
+            </p>
           </div>
 
           <div className="dash-avatar">
@@ -200,40 +173,24 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* NOTICEBOARD + BOOK CALL ROW */}
-        <section className="dash-section dash-row-two">
-          <div className="dash-card dash-notice-card">
-            <p className="dash-card-kicker">Latest noticeboard update</p>
-
-            {latestPostLoading ? (
-              <p className="dash-card-body small">Loading…</p>
-            ) : !latestPost ? (
-              <p className="dash-card-body small">
-                No posts yet. Once an admin adds an update, it will appear here.
+        {/* STRATEGY (investor/admin only) + BOOK CALL */}
+        <section
+          className={isInvestor ? 'dash-section dash-row-two' : 'dash-section'}
+        >
+          {isInvestor && (
+            <div className="dash-card dash-strategy-card">
+              <p className="dash-card-kicker">Strategy preparation</p>
+              <p className="dash-card-title">Get ready for your next step</p>
+              <p className="dash-card-body">
+                Work through your strategy modules and keep everything moving.
               </p>
-            ) : (
-              <>
-                <p className="dash-card-title">{latestPost.title}</p>
-                <p className="dash-card-meta">
-                  {latestPost.is_pinned ? 'Pinned · ' : ''}
-                  {formatDate(latestPost.created_at)}
-                </p>
-                {latestPost.body && (
-                  <p className="dash-card-body">
-                    {latestPost.body.length > 80
-                      ? latestPost.body.slice(0, 80) + '…'
-                      : latestPost.body}
-                  </p>
-                )}
-                <Link
-                  href={`/noticeboard/${latestPost.id}`}
-                  className="dash-card-link"
-                >
-                  View on documents →
-                </Link>
-              </>
-            )}
-          </div>
+
+              {/* ✅ Match Book-a-call sizing */}
+              <Link href="/strategy" className="dash-card-btn">
+                Open strategy →
+              </Link>
+            </div>
+          )}
 
           <div className="dash-card dash-call-card">
             <p className="dash-card-kicker">Book a call</p>
@@ -241,11 +198,13 @@ export default function DashboardPage() {
             <p className="dash-card-body">
               Choose a time that suits you and speak with our team.
             </p>
+
+            {/* ✅ Match Strategy sizing */}
             <a
               href={BOOK_CALL_URL}
               target="_blank"
               rel="noreferrer"
-              className="dash-primary-btn"
+              className="dash-card-btn"
             >
               Book a call
             </a>
@@ -331,9 +290,7 @@ export default function DashboardPage() {
                       <span className="dash-course-progress-label">
                         {completedLessons}/{totalLessons} lessons
                       </span>
-                      <span className="dash-course-progress-pct">
-                        {pct}%
-                      </span>
+                      <span className="dash-course-progress-pct">{pct}%</span>
                     </div>
 
                     <div className="dash-course-bar">
@@ -359,7 +316,7 @@ export default function DashboardPage() {
         .dash-inner {
           width: 100%;
           max-width: 520px;
-          padding: 12px 16px 0; /* ⬅ no extra bottom padding */
+          padding: 12px 16px 0;
         }
 
         .dash-header {
@@ -395,7 +352,7 @@ export default function DashboardPage() {
           height: 40px;
           border-radius: 999px;
           background: #ffffff;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -407,7 +364,6 @@ export default function DashboardPage() {
           margin-bottom: 16px;
         }
 
-        /* ⬅ kill extra gap under the LAST section */
         .dash-section:last-of-type {
           margin-bottom: 0;
         }
@@ -416,13 +372,17 @@ export default function DashboardPage() {
           display: grid;
           grid-template-columns: 1.1fr 0.9fr;
           gap: 12px;
+          align-items: stretch; /* ✅ equal heights */
         }
 
         .dash-card {
           background: #ffffff;
           border-radius: 22px;
           padding: 14px 14px 16px;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
         }
 
         .dash-card-kicker {
@@ -440,102 +400,88 @@ export default function DashboardPage() {
           margin: 0 0 4px;
         }
 
-        .dash-card-meta {
-          font-size: 11px;
-          color: #a1a6c0;
-          margin: 0 0 4px;
-        }
-
         .dash-card-body {
           font-size: 12px;
           color: #8c90a8;
           margin: 0;
+          max-width: 92%;
         }
 
-        .dash-card-body.small {
-          font-size: 12px;
-        }
+        /* ✅ SAME CTA FOR BOTH CARDS */
+        .dash-card-btn {
+          margin-top: auto; /* push to bottom */
+          align-self: flex-start;
 
-        .dash-card-link {
-          display: inline-block;
-          margin-top: 6px;
-          font-size: 12px;
-          color: #555fe0;
-          text-decoration: none;
-        }
-
-        .dash-card-link:hover {
-          text-decoration: underline;
-        }
-
-        .dash-call-card {
-          text-align: left;
-        }
-
-        .dash-primary-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: 10px;
-          padding: 8px 16px;
-          border-radius: 999px;
-          border: none;
-          background: var(--ia-grad);
+          padding: 8px 14px;
           font-size: 13px;
           font-weight: 600;
+          border-radius: 999px;
+
+          background: #0b2e23;
           color: #ffffff;
           text-decoration: none;
-          box-shadow: var(--shadow-brand);
+
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+
+          border: 1px solid rgba(255, 255, 255, 0.25);
         }
 
-        /* Continue card */
-
+        /* TEXTURED CONTINUE CARD */
         .dash-continue-card {
           padding: 16px 18px;
           border-radius: 26px;
-          background: var(--ia-grad);
+          background: linear-gradient(
+              rgba(15, 61, 46, 0.55),
+              rgba(15, 61, 46, 0.55)
+            ),
+            url('/bg/ia-texture.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          box-shadow: var(--shadow-brand);
+          box-shadow: 0 18px 40px rgba(15, 61, 46, 0.28);
         }
 
         .dash-continue-kicker {
           font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 0.16em;
-          opacity: 0.9;
+          opacity: 0.85;
           margin-bottom: 4px;
+          color: #e5e7eb;
         }
 
         .dash-continue-title {
           font-size: 15px;
           font-weight: 600;
           margin: 0 0 2px;
+          color: #ffffff;
         }
 
         .dash-continue-sub {
           font-size: 13px;
-          opacity: 0.95;
           margin: 0;
+          color: #e5e7eb;
         }
 
         .dash-continue-btn {
           border-radius: 999px;
           padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.18);
-          border: none;
+          background: #0b2e23;
+          border: 1px solid rgba(255, 255, 255, 0.25);
           font-size: 13px;
           font-weight: 600;
           color: #ffffff;
           text-decoration: none;
-          backdrop-filter: blur(8px);
           white-space: nowrap;
         }
-
-        /* Courses */
 
         .dash-section-header {
           display: flex;
@@ -568,7 +514,7 @@ export default function DashboardPage() {
           background: #ffffff;
           border-radius: 20px;
           padding: 12px 12px 14px;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
           display: flex;
           flex-direction: column;
           gap: 4px;
@@ -595,6 +541,10 @@ export default function DashboardPage() {
           margin-bottom: 4px;
         }
 
+        .dash-course-progress-pct {
+          font-weight: 600;
+        }
+
         .dash-course-bar {
           width: 100%;
           height: 6px;
@@ -611,11 +561,17 @@ export default function DashboardPage() {
 
         @media (max-width: 720px) {
           .dash-inner {
-            padding: 10px 12px 0; /* ⬅ no bottom padding on mobile either */
+            padding: 10px 12px 0;
           }
 
           .dash-row-two {
             grid-template-columns: 1fr;
+          }
+
+          .dash-card-btn {
+            width: 100%;
+            justify-content: center;
+            align-self: stretch;
           }
 
           .dash-continue-card {

@@ -138,7 +138,11 @@ export default function SignupPage() {
 
             {error && <p className="error-text">{error}</p>}
 
-            <button type="submit" className="primary-btn" disabled={loading}>
+            <button
+  type="submit"
+  className={`primary-btn ia-btn-primary ia-texture-strong ${loading ? 'is-disabled' : ''}`}
+  disabled={loading}
+>
               {loading ? 'Creating account…' : 'Sign up'}
             </button>
           </form>
@@ -178,7 +182,7 @@ export default function SignupPage() {
           padding: 10px 16px;
           background: #ffffff;
           border-radius: 16px;
-          box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+          box-shadow: var(--shadow-brand);
         }
 
         .header-logo {
@@ -212,7 +216,7 @@ export default function SignupPage() {
           background: #ffffff;
           border-radius: 22px;
           padding: 20px 22px 22px;
-          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+          box-shadow: var(--shadow-brand);
         }
 
         .card-title {
@@ -274,9 +278,9 @@ export default function SignupPage() {
           padding: 11px 16px;
           font-size: 15px;
           font-weight: 600;
-          background: linear-gradient(135deg, #1d2cff, #0a0f4f);
+          background: var(--ia-grad);
           color: #ffffff;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
         }
 
         .primary-btn[disabled] {

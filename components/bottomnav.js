@@ -7,6 +7,9 @@ export default function BottomNav() {
   const router = useRouter();
   const { profile, isAdmin } = useProfile() || {};
 
+  const role = profile?.role || 'viewer';
+  const canSeeStrategy = role === 'investor' || role === 'admin';
+
   const currentPath = router.asPath || router.pathname || '/';
 
   const avatarInitial =
@@ -21,18 +24,21 @@ export default function BottomNav() {
     { href: '/dashboard', label: 'Home' },
     { href: '/courses', label: 'Courses' },
     { href: '/noticeboard', label: 'Documents' },
-    { href: '/profile', label: 'Profile' },
   ];
 
-  const items = isAdmin
-    ? [
-        baseItems[0],
-        baseItems[1],
-        baseItems[2],
-        { href: '/admin', label: 'Admin' },
-        baseItems[3],
-      ]
-    : baseItems;
+  // Only investor/admin see Strategy
+  const strategyItem = { href: '/strategy', label: 'Strategy' };
+
+  const profileItem = { href: '/profile', label: 'Profile' };
+
+  // Build nav items
+  let items = [...baseItems];
+
+  if (canSeeStrategy) items.push(strategyItem);
+
+  if (isAdmin) items.push({ href: '/admin', label: 'Admin' });
+
+  items.push(profileItem);
 
   const isActive = (path) => {
     if (path === '/dashboard') {
@@ -109,6 +115,36 @@ export default function BottomNav() {
             stroke="currentColor"
             strokeWidth="1.8"
             strokeLinecap="round"
+          />
+        </svg>
+      );
+    }
+
+    // ✅ Strategy icon (flag / roadmap-ish)
+    if (href.startsWith('/strategy')) {
+      return (
+        <svg {...common}>
+          <path
+            d="M6 20V4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <path
+            d="M6 5h10l-1.8 3L16 11H6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="17.5"
+            cy="6.5"
+            r="1.6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
           />
         </svg>
       );
@@ -194,7 +230,7 @@ export default function BottomNav() {
           height: 56px;
           border-radius: 24px;
           background: var(--card, #ffffff);
-          box-shadow: var(--shadow-card, 0 10px 30px rgba(15, 23, 42, 0.18));
+          box-shadow: var(--shadow-brand);
           display: flex;
           align-items: center;
           justify-content: space-around;
@@ -210,7 +246,6 @@ export default function BottomNav() {
           color: #a1a6c0;
         }
 
-        /* ✅ Active text/icon colour now green */
         .ia-nav-link--active {
           color: var(--ia-green, #0f3d2e);
         }
@@ -233,7 +268,6 @@ export default function BottomNav() {
           justify-content: center;
         }
 
-        /* ✅ Active icon “pill” background now green-tinted */
         .ia-nav-link--active .ia-nav-icon-wrap {
           background: rgba(15, 61, 46, 0.10);
         }
@@ -248,7 +282,6 @@ export default function BottomNav() {
           display: block;
         }
 
-        /* ✅ Avatar ring now green */
         .ia-nav-avatar-wrap {
           width: 22px;
           height: 22px;
@@ -267,7 +300,6 @@ export default function BottomNav() {
           border-radius: inherit;
         }
 
-        /* ✅ Initial badge now green gradient */
         .ia-nav-avatar-initial {
           font-size: 12px;
           font-weight: 600;

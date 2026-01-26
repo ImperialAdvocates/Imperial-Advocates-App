@@ -41,7 +41,7 @@ export default function CoursesIndexPage() {
 
         setCourses(coursesData || []);
 
-        // 3) All lessons (include title + lesson_index so we can resume)
+        // 3) All lessons
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
           .select('id, course_id, title, lesson_index')
@@ -163,8 +163,7 @@ export default function CoursesIndexPage() {
                 {displayName
                   ? `Keep building your knowledge, ${displayName}.`
                   : 'Keep building your knowledge.'}{' '}
-                Work through each module at your own pace and come back any
-                time.
+                Work through each module at your own pace and come back any time.
               </p>
             </div>
 
@@ -177,17 +176,16 @@ export default function CoursesIndexPage() {
           </div>
         </header>
 
-        {/* CONTINUE LEARNING – same vibe as dashboard */}
+        {/* CONTINUE LEARNING */}
         {resumeLesson && (
           <section className="courses-continue">
             <div className="continue-card">
-              <div>
+              <div className="continue-left">
                 <p className="continue-kicker">Continue learning</p>
                 <p className="continue-title">{resumeLesson.courseTitle}</p>
-                <p className="continue-sub">
-                  Lesson – {resumeLesson.lessonTitle}
-                </p>
+                <p className="continue-sub">Lesson – {resumeLesson.lessonTitle}</p>
               </div>
+
               <Link
                 href={`/courses/${resumeLesson.courseId}/${resumeLesson.lessonId}`}
                 className="continue-btn"
@@ -231,6 +229,7 @@ export default function CoursesIndexPage() {
                       <div className="course-icon">
                         <span className="course-icon-glyph">📘</span>
                       </div>
+
                       <div className="course-text">
                         <h3 className="course-title">{course.title}</h3>
                         <p className="course-subtitle">
@@ -262,12 +261,10 @@ export default function CoursesIndexPage() {
           )}
         </section>
 
-        {/* space so bottom nav doesn’t cover content on mobile */}
         <div className="courses-bottom-safe" />
       </div>
 
       <style jsx>{`
-        /* Match dashboard + noticeboard shell */
         .courses-page {
           width: 100%;
           display: flex;
@@ -276,7 +273,7 @@ export default function CoursesIndexPage() {
 
         .courses-inner {
           width: 100%;
-          max-width: 520px; /* same as dash-inner */
+          max-width: 520px;
           padding: 12px 16px 24px;
           display: flex;
           flex-direction: column;
@@ -288,7 +285,7 @@ export default function CoursesIndexPage() {
           border-radius: 20px;
           padding: 14px 14px 16px;
           background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+          box-shadow: var(--shadow-brand);
         }
 
         .hero-top-row {
@@ -337,20 +334,21 @@ export default function CoursesIndexPage() {
           gap: 6px;
           padding: 4px 10px;
           border-radius: 999px;
-          background: #eef2ff;
+          background: rgba(15, 61, 46, 0.08);
           color: #4b5563;
           font-size: 11px;
           font-weight: 500;
+          border: 1px solid rgba(15, 61, 46, 0.12);
         }
 
         .hero-pill-dot {
           width: 6px;
           height: 6px;
           border-radius: 999px;
-          background: #4f46e5;
+          background: var(--ia-green);
         }
 
-        /* CONTINUE CARD (blue gradient, like dashboard’s updated one) */
+        /* CONTINUE CARD – TEXTURED FEATURE CARD */
         .courses-continue {
           margin-top: 0;
         }
@@ -358,30 +356,36 @@ export default function CoursesIndexPage() {
         .continue-card {
           padding: 16px 18px;
           border-radius: 26px;
-          background: linear-gradient(135deg, #1d2cff, #0a0f4f);
-          color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          box-shadow: 0 18px 40px rgba(29, 44, 255, 0.25);
+          box-shadow: var(--shadow-brand);
           position: relative;
           overflow: hidden;
+
+          /* Texture layer */
+          background-image: url('/bg/ia-texture.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
         }
 
-        .continue-card::before {
+        /* dark overlay so text is readable */
+        .continue-card::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: radial-gradient(
-            circle at top left,
-            rgba(255, 255, 255, 0.18),
-            transparent 60%
+          background: linear-gradient(
+            135deg,
+            rgba(11, 46, 35, 0.80),
+            rgba(15, 61, 46, 0.68)
           );
           pointer-events: none;
         }
 
-        .continue-card > div {
+        .continue-left,
+        .continue-btn {
           position: relative;
           z-index: 1;
         }
@@ -390,29 +394,30 @@ export default function CoursesIndexPage() {
           font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 0.16em;
-          opacity: 0.9;
+          opacity: 0.92;
           margin-bottom: 4px;
+          color: rgba(255, 255, 255, 0.92);
         }
 
         .continue-title {
           font-size: 15px;
           font-weight: 600;
           margin: 0 0 2px;
+          color: #ffffff;
         }
 
         .continue-sub {
           font-size: 13px;
           opacity: 0.95;
           margin: 0;
+          color: rgba(255, 255, 255, 0.92);
         }
 
         .continue-btn {
-          position: relative;
-          z-index: 1;
           border-radius: 999px;
           padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.18);
-          border: none;
+          background: rgba(255, 255, 255, 0.16);
+          border: 1px solid rgba(255, 255, 255, 0.22);
           font-size: 13px;
           font-weight: 600;
           color: #ffffff;
@@ -426,17 +431,10 @@ export default function CoursesIndexPage() {
           border-radius: 22px;
           padding: 14px 14px 16px;
           background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 20px 55px rgba(15, 23, 42, 0.22);
+          box-shadow: var(--shadow-brand);
           display: flex;
           flex-direction: column;
           gap: 12px;
-        }
-
-        .courses-header-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 8px;
         }
 
         .section-heading {
@@ -463,9 +461,8 @@ export default function CoursesIndexPage() {
           text-decoration: none;
           padding: 12px 12px 14px;
           border-radius: 18px;
-          background: linear-gradient(145deg, #ffffff, #eef2ff);
-          box-shadow:
-            0 14px 36px rgba(15, 23, 42, 0.2),
+          background: linear-gradient(145deg, #ffffff, rgba(15, 61, 46, 0.04));
+          box-shadow: 0 14px 36px rgba(15, 23, 42, 0.2),
             0 0 0 1px rgba(209, 213, 219, 0.7);
           display: flex;
           flex-direction: column;
@@ -476,9 +473,8 @@ export default function CoursesIndexPage() {
 
         .course-card:hover {
           transform: translateY(-2px);
-          box-shadow:
-            0 18px 50px rgba(15, 23, 42, 0.28),
-            0 0 0 1px rgba(129, 140, 248, 0.9);
+          box-shadow: 0 18px 50px rgba(15, 23, 42, 0.28),
+            0 0 0 1px rgba(15, 61, 46, 0.28);
         }
 
         .course-card-top {
@@ -491,7 +487,11 @@ export default function CoursesIndexPage() {
           width: 40px;
           height: 40px;
           border-radius: 14px;
-          background: radial-gradient(circle at top left, #e0e7ff, #1d2cff);
+          background: radial-gradient(
+            circle at top left,
+            rgba(15, 61, 46, 0.18),
+            rgba(11, 46, 35, 0.95)
+          );
           display: flex;
           align-items: center;
           justify-content: center;
@@ -500,12 +500,6 @@ export default function CoursesIndexPage() {
 
         .course-icon-glyph {
           font-size: 20px;
-        }
-
-        .course-text {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
         }
 
         .course-title {
@@ -531,8 +525,8 @@ export default function CoursesIndexPage() {
         }
 
         .course-pct {
-          font-weight: 600;
-          color: #4f46e5;
+          font-weight: 700;
+          color: var(--ia-green);
         }
 
         .course-progress-bar {
@@ -546,14 +540,14 @@ export default function CoursesIndexPage() {
         .course-progress-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(135deg, #1D2CFF, #0A0F4F);
+          background: var(--ia-grad);
         }
 
         .course-cta {
           margin-top: 6px;
           font-size: 11px;
-          font-weight: 500;
-          color: #4b5563;
+          font-weight: 600;
+          color: var(--ia-green);
         }
 
         .courses-bottom-safe {
@@ -567,10 +561,6 @@ export default function CoursesIndexPage() {
 
           .hero-top-row {
             flex-direction: column;
-          }
-
-          .hero-meta {
-            justify-content: flex-start;
           }
 
           .courses-grid {
