@@ -7,23 +7,6 @@ import { useProfile } from '../../hooks/useProfile';
 const BOOK_CALL_URL =
   'https://api.leadconnectorhq.com/widget/booking/gBhfSeUYYjXTgOIPNVYt';
 
-/* =========================
-   CONFIG (put your real IDs)
-   ========================= */
-const STRATEGY_VIDEO_URL = 'https://drive.google.com/file/d/YOUR_VIDEO_ID/view';
-const STRATEGY_DOC_URL = 'https://drive.google.com/file/d/YOUR_DOC_ID/view';
-
-/* Google Drive "file" URL -> preview embed */
-function getDriveEmbedUrl(url) {
-  if (!url || typeof url !== 'string') return null;
-  if (!url.includes('drive.google.com')) return null;
-
-  const match = url.match(/\/d\/([^/]+)/);
-  if (!match || !match[1]) return null;
-
-  return `https://drive.google.com/file/d/${match[1]}/preview`;
-}
-
 function LockedStrategy() {
   return (
     <div className="locked">
@@ -84,9 +67,6 @@ export default function StrategyIndex() {
   const [loadingModules, setLoadingModules] = useState(true);
   const [error, setError] = useState('');
 
-  const videoEmbed = getDriveEmbedUrl(STRATEGY_VIDEO_URL);
-  const docEmbed = getDriveEmbedUrl(STRATEGY_DOC_URL);
-
   useEffect(() => {
     let alive = true;
 
@@ -125,12 +105,11 @@ export default function StrategyIndex() {
 
   if (profileLoading) return <p style={{ padding: 16 }}>Loading…</p>;
 
-  // Viewers: show intro (optional) + lock
+  // Viewers: hero + lock (no overview/doc)
   if (!isInvestor) {
     return (
       <div className="strategy-screen">
         <div className="strategy-inner">
-          {/* HERO (same as before) */}
           <section className="strategy-hero">
             <div className="hero-left">
               <p className="eyebrow">STRATEGY</p>
@@ -139,43 +118,6 @@ export default function StrategyIndex() {
                 Work through these modules to prepare for your next steps with
                 Imperial Advocates.
               </p>
-            </div>
-          </section>
-
-          {/* INTRO VIDEO */}
-          <section className="strategy-card">
-            <h2 className="sectionTitle">Strategy overview</h2>
-            <div className="embedWrap">
-              {videoEmbed ? (
-                <iframe
-                  src={videoEmbed}
-                  title="Strategy overview"
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="emptyEmbed">
-                  Add your Google Drive video link in STRATEGY_VIDEO_URL.
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* INTRO DOC */}
-          <section className="strategy-card">
-            <h2 className="sectionTitle">Strategy document</h2>
-            <div className="embedWrap embedWrap--doc">
-              {docEmbed ? (
-                <iframe
-                  className="docFrame"
-                  src={docEmbed}
-                  title="Strategy document"
-                />
-              ) : (
-                <a href={STRATEGY_DOC_URL} target="_blank" rel="noreferrer" className="docLink">
-                  Open document →
-                </a>
-              )}
             </div>
           </section>
 
@@ -189,11 +131,10 @@ export default function StrategyIndex() {
     );
   }
 
-  // Investor/Admin: same look as before + intro + modules
+  // Investor/Admin: hero + modules only (no overview/doc)
   return (
     <div className="strategy-screen">
       <div className="strategy-inner">
-        {/* HERO (same as before) */}
         <section className="strategy-hero">
           <div className="hero-left">
             <p className="eyebrow">STRATEGY</p>
@@ -220,44 +161,7 @@ export default function StrategyIndex() {
           </div>
         </section>
 
-        {/* INTRO VIDEO */}
-        <section className="strategy-card">
-          <h2 className="sectionTitle">Strategy overview</h2>
-          <div className="embedWrap">
-            {videoEmbed ? (
-              <iframe
-                src={videoEmbed}
-                title="Strategy overview"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <div className="emptyEmbed">
-                Add your Google Drive video link in STRATEGY_VIDEO_URL.
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* INTRO DOC */}
-        <section className="strategy-card">
-          <h2 className="sectionTitle">Strategy document</h2>
-          <div className="embedWrap embedWrap--doc">
-            {docEmbed ? (
-              <iframe
-                className="docFrame"
-                src={docEmbed}
-                title="Strategy document"
-              />
-            ) : (
-              <a href={STRATEGY_DOC_URL} target="_blank" rel="noreferrer" className="docLink">
-                Open document →
-              </a>
-            )}
-          </div>
-        </section>
-
-        {/* MODULES (same as before) */}
+        {/* MODULES */}
         <section className="strategy-card">
           <div className="sectionHeader">
             <h2 className="sectionTitle">Modules</h2>
@@ -399,41 +303,6 @@ const styles = `
     color: #111827;
   }
 
-  .embedWrap {
-    width: 100%;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: #0b0b0b;
-  }
-
-  .embedWrap iframe {
-    width: 100%;
-    height: 220px;
-    border: 0;
-    display: block;
-    background: #0b0b0b;
-  }
-
-  .embedWrap--doc iframe {
-    height: 420px;
-    background: #ffffff;
-  }
-
-  .emptyEmbed {
-    padding: 16px;
-    font-size: 13px;
-    color: #e5e7eb;
-  }
-
-  .docLink {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--ia-green, #0f3d2e);
-    text-decoration: none;
-  }
-  .docLink:hover { text-decoration: underline; }
-
   .empty {
     margin: 4px 0 0;
     font-size: 13px;
@@ -503,14 +372,6 @@ const styles = `
 
     .hero-meta {
       align-items: flex-start;
-    }
-
-    .embedWrap iframe {
-      height: 210px;
-    }
-
-    .embedWrap--doc iframe {
-      height: 380px;
     }
   }
 `;
