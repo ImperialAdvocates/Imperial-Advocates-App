@@ -257,12 +257,24 @@ export default function LessonPage() {
           {hasDirectVideo ? (
             <video src={lesson.video_url} controls controlsList="nodownload" />
           ) : hasDriveVideo ? (
-            <iframe
-              src={driveEmbedUrl}
-              title={lesson.title}
-              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <>
+              <iframe
+                src={driveEmbedUrl}
+                title={lesson.title}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+
+              {/* Mobile fallback */}
+              <a
+                href={lesson.video_url}
+                target="_blank"
+                rel="noreferrer"
+                className="mobilePlayBtn"
+              >
+                ▶ Tap to play video
+              </a>
+            </>
           ) : lesson.embed_url ? (
             <iframe
               src={lesson.embed_url}
@@ -479,15 +491,6 @@ const styles = `
     pointer-events: none;
   }
 
-  .lesson-complete-btn--done {
-    position: relative;
-  }
-
-  .lesson-complete-btn--done span,
-  .lesson-complete-btn--done {
-    z-index: 1;
-  }
-
   .lesson-complete-btn[disabled] {
     opacity: 0.7;
     cursor: default;
@@ -499,6 +502,7 @@ const styles = `
     overflow: hidden;
     background: #000000;
     box-shadow: var(--shadow-brand);
+    padding-bottom: 12px; /* gives room for the mobile button */
   }
 
   .lesson-video-card video,
@@ -512,6 +516,25 @@ const styles = `
     padding: 24px 18px;
     color: #e5e7eb;
     font-size: 13px;
+  }
+
+  /* ✅ MOBILE FALLBACK BUTTON */
+  .mobilePlayBtn {
+    display: none;
+    margin: 12px 12px 0;
+    padding: 12px 16px;
+    border-radius: 999px;
+    text-align: center;
+    font-weight: 900;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(135deg, #0b2e23, #0f3d2e);
+  }
+
+  @media (max-width: 768px) {
+    .mobilePlayBtn {
+      display: block;
+    }
   }
 
   /* NOTES CARD */
@@ -583,14 +606,6 @@ const styles = `
       rgba(15, 61, 46, 0.70)
     );
     pointer-events: none;
-  }
-
-  .lesson-nav-link--primary {
-    position: relative;
-  }
-  .lesson-nav-link--primary > * {
-    position: relative;
-    z-index: 1;
   }
 
   .lesson-nav-row span {
